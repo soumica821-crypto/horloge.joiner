@@ -20,7 +20,11 @@ export default function Admin() {
   const [o, setO] = useState(null);
   const { refresh } = useAuth();
   const load = () => { api.get("/admin/overview").then((r) => setO(r.data)); refresh(); };
-  useEffect(() => { load(); const t = setInterval(load, 10000); return () => clearInterval(t); }, []);
+  useEffect(() => {
+  load();
+  const t = setInterval(load, 10000);
+  return () => clearInterval(t);
+}, [load]);
   if (!o) return <div className="text-zinc-500">Loading…</div>;
 
   return (
