@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -19,7 +19,10 @@ const Stat = ({ label, value, testid }) => (
 export default function Admin() {
   const [o, setO] = useState(null);
   const { refresh } = useAuth();
-  const load = () => { api.get("/admin/overview").then((r) => setO(r.data)); refresh(); };
+  const load = useCallback(() => {
+  api.get("/admin/overview").then((r) => setO(r.data));
+  refresh();
+}, [refresh]);
   useEffect(() => {
   load();
   const t = setInterval(load, 10000);
