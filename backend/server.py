@@ -36,7 +36,7 @@ def is_owner(u):
     return u.get("discord_id") == OWNER_DISCORD_ID
 BOT_TOKEN = os.environ["BOT_API_TOKEN"]
 FRONTEND_URL = os.environ["FRONTEND_URL"]
-PUBLIC_API = "https://horloge-joiner.onrender.com/api"
+PUBLIC_API = FRONTEND_URL.rstrip("/") + "/api"
 DISCORD_CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
 DISCORD_CLIENT_SECRET = os.environ["DISCORD_CLIENT_SECRET"]
 DISCORD_REDIRECT_URI = os.environ["DISCORD_REDIRECT_URI"]
