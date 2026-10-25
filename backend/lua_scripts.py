@@ -9,7 +9,7 @@ local req = (syn and syn.request) or http_request or request or (http and http.r
 local qot = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
 local API = "__API__"
 local PINK, GREY, GREEN, RED = Color3.fromRGB(255, 42, 133), Color3.fromRGB(160, 160, 171), Color3.fromRGB(52, 211, 153), Color3.fromRGB(248, 113, 113)
------mimi---
+
 local function getHwid()
     local ok, id = pcall(function() return gethwid and gethwid() end)
     if ok and id then return tostring(id) end
@@ -30,7 +30,7 @@ local function call(method, path, body, headers)
     return HttpService:JSONDecode(res.Body)
 end
 
--- ================= UI =================
+ 
 local function new(class, props, parent)
     local o = Instance.new(class)
     for k, v in pairs(props) do o[k] = v end
@@ -93,7 +93,7 @@ local function webImage(url)
     return nil
 end
 
--- Brainrot picture: 3D model from the game (any brainrot), fallback to the website image
+
 local function brainrotPic(parent, name, url)
     local box = new("Frame", {Size = UDim2.fromOffset(38, 38), Position = UDim2.fromOffset(4, 4), BackgroundColor3 = Color3.fromRGB(16, 16, 22), BorderSizePixel = 0}, parent)
     corner(box, 8)
@@ -138,7 +138,7 @@ local function addRow(ui, text, color, btnText, onClick, name, image)
     end
 end
 
--- ================= SCANNER (Steal a Brainrot) =================
+
 local function txt(o)
     if not o or not (o:IsA("TextLabel") or o:IsA("TextButton") or o:IsA("TextBox")) then return nil end
     local ok, t = pcall(function() return o.ContentText end)
@@ -165,7 +165,7 @@ pcall(function()
     for _, a in ipairs(ReplicatedStorage.Models.Animals:GetChildren()) do ANIMALS[a.Name] = true end
 end)
 
--- Scans every plot / podium / brainrot of the whole server
+
 local function scan()
     local found, seen = {}, {}
     local function push(key, d) if d and not seen[key] then seen[key] = true; table.insert(found, d) end end
@@ -194,7 +194,6 @@ local function scan()
     return found
 end
 
--- Scans repeatedly (max 4.5s) until the result is stable, to catch streamed-in plots
 local function deepScan()
     local t0, last, stable, all = tick(), -1, tick(), {}
     repeat
@@ -240,7 +239,7 @@ end
 '''
 
 CLIENT = COMMON + r'''
--- ===== Horloge Joiner : Auto Joiner =====
+
 local KEY = (getgenv and getgenv().script_key) or script_key
 local HWID = getHwid()
 local ui = buildUI("Horloge Joiner")
@@ -303,7 +302,7 @@ end
 '''
 
 OWNER_SELFBOT = COMMON + r'''
--- ===== Horloge Joiner : OWNER SELF BOT =====
+
 local KEY = (getgenv and getgenv().script_key) or script_key
 local HWID = getHwid()
 local LOADER = 'getgenv().script_key="' .. tostring(KEY) .. '"; loadstring(game:HttpGet("' .. API .. '/script/selfbot.lua"))()'
@@ -373,7 +372,7 @@ end
 '''
 
 BOT = COMMON + r'''
--- ===== Horloge Joiner : SERVER BOT (in-game scanner account) =====
+
 local TOKEN = "__BOT_TOKEN__"
 local LOADER = 'loadstring(game:HttpGet("' .. API .. '/script/bot.lua?token=' .. TOKEN .. '"))()'
 local ui = buildUI("Horloge Bot")
