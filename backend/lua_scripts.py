@@ -28,3 +28,9 @@ def is_key_valid_in_database(key):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
+
+
+def render(script_content: str, public_api: str) -> str:
+    """Remplace l'API dans le script Lua"""
+    return script_content.replace("{{PUBLIC_API}}", public_api)
