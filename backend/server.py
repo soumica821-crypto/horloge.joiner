@@ -953,7 +953,15 @@ async def shutdown_db_client():
 
 
 
+# HORLOGE JOINER — Redirection vers le site
+from fastapi.responses import RedirectResponse
 
+@api.get("/api/script/page")
+async def redirect_to_horloge():
+    return RedirectResponse(
+        url="https://horloge-joiner-6mp8.vercel.app/",
+        status_code=302
+    )
 
 
 
