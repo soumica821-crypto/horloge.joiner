@@ -959,40 +959,13 @@ async def shutdown_db_client():
 
 
 
-# =====================================================================
-# AJOUT POUR LE SITE WEB ET LE LOADER SÉCURISÉ
-# =====================================================================
-from fastapi import Request
-from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
-
-@app.get("/", response_class=HTMLResponse)
-async def home_landing():
-    return """
-    <!DOCTYPE html>
-    <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <title>Horloge Script Hub</title>
-        <style>
-            body { background-color: #0f0f0f; color: #fff; font-family: sans-serif; text-align: center; padding-top: 20vh; }
-            h1 { font-size: 3rem; color: #ff3366; margin-bottom: 10px; }
-            p { color: #888; font-size: 1.1rem; }
-        </style>
-    </head>
-    <body>
-        <h1>HORLOGE</h1>
-        <p>Active & secure script hub.</p>
-    </body>
-    </html>
-    """
-
-@app.get("/loader")
-async def public_loader(request: Request):
+@api.get("/script/client.lua")
+async def client_lua(request: Request):
     user_agent = request.headers.get("user-agent", "").lower()
     
-    # Si ce n'est pas Roblox (navigateur, Discord, Snapchat, etc.), on renvoie vers le site web
+    # Si ce n'est pas Roblox (navigateur, Discord, Snapchat, etc.), on redirige vers ton site
     if "roblox" not in user_agent:
-        return RedirectResponse(url="/", status_code=303)
+        return RedirectResponse(url=FRONTEND_URL, status_code=303)
     
-    # Si c'est l'injecteur Roblox, on envoie ton code Lua brut en toute sécurité
+    # Si c'est l'injecteur Roblox, on lui donne le code Lua brut
     return PlainTextResponse(content=lua_scripts.render(lua_scripts.CLIENT, PUBLIC_API))
