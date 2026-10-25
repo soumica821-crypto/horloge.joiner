@@ -9,7 +9,7 @@ local req = (syn and syn.request) or http_request or request or (http and http.r
 local qot = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
 local API = "__API__"
 local PINK, GREY, GREEN, RED = Color3.fromRGB(255, 42, 133), Color3.fromRGB(160, 160, 171), Color3.fromRGB(52, 211, 153), Color3.fromRGB(248, 113, 113)
-
+-----mimi---
 local function getHwid()
     local ok, id = pcall(function() return gethwid and gethwid() end)
     if ok and id then return tostring(id) end
