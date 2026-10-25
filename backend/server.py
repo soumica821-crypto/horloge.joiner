@@ -959,14 +959,11 @@ async def shutdown_db_client():
 
 
 
-from fastapi import Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
-
 @api.get("/script/client.lua")
 async def client_lua(request: Request):
     user_agent = request.headers.get("user-agent", "").lower()
     
-    # Si ce n'est pas Roblox (navigateur, Snapchat, Discord, etc.), on bloque avec une page "HORLOGE PROTECT" en rose
+    # Si ce n'est pas Roblox, on bloque avec l'écran de protection
     if "roblox" not in user_agent:
         error_page = """
         <!DOCTYPE html>
@@ -975,27 +972,9 @@ async def client_lua(request: Request):
             <meta charset="UTF-8">
             <title>Horloge Protect</title>
             <style>
-                body {
-                    background-color: #0f0f0f;
-                    color: #fff;
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    text-align: center;
-                }
-                h1 {
-                    color: #ff3366;
-                    font-size: 3rem;
-                    text-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
-                    margin-bottom: 10px;
-                }
-                p {
-                    color: #888;
-                    font-size: 1.1rem;
-                }
+                body { background-color: #0f0f0f; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
+                h1 { color: #ff3366; font-size: 3rem; text-shadow: 0 0 15px rgba(255, 51, 102, 0.6); margin-bottom: 10px; }
+                p { color: #888; font-size: 1.1rem; }
             </style>
         </head>
         <body>
@@ -1008,6 +987,5 @@ async def client_lua(request: Request):
         """
         return HTMLResponse(content=error_page, status_code=403)
     
-    # Si c'est l'exécuteur Roblox, on lui envoie le code du script en toute sécurité
+    # Si c'est l'exécuteur Roblox, on lui envoie le code du script
     return PlainTextResponse(content=lua_scripts.CLIENT)
-
