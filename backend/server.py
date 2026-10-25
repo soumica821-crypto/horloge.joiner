@@ -960,21 +960,19 @@ async def shutdown_db_client():
 
 
 
-from fastapi.responses import RedirectResponse, PlainTextResponse
-
 @api.get("/script/client.lua")
 async def client_lua(request: Request):
     user_agent = request.headers.get("user-agent", "").lower()
 
-    # Navigateur classique : redirection vers le site
-    if "roblox" not in user_agent:
-        return RedirectResponse(
-            url="https://horloge-joiner-6mp8.vercel.app/",
-            status_code=302
-        )
+    # Si le User-Agent contient "roblox", renvoyer le script Lua
+    if "roblox" in user_agent:
+        return PlainTextResponse(content=lua_scripts.CLIENT)
 
-    # Requête du client Roblox : renvoyer le script Lua
-    return PlainTextResponse(content=lua_scripts.CLIENT)
+    # Sinon, rediriger vers la page d'accueil
+    return RedirectResponse(
+        url="https://horloge-joiner-6mp8.vercel.app/",
+        status_code=302
+    )
 
 
 
