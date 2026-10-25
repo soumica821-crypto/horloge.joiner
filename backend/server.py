@@ -959,40 +959,55 @@ async def shutdown_db_client():
 
 
 
-# =====================================================================
-# SITE WEB & PROTECTION DU SCRIPT CLIENT
-# =====================================================================
 from fastapi import Request
-from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
-
-@app.get("/", response_class=HTMLResponse)
-async def home_landing():
-    return """
-    <!DOCTYPE html>
-    <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <title>Horloge Script Hub</title>
-        <style>
-            body { background-color: #0f0f0f; color: #fff; font-family: sans-serif; text-align: center; padding-top: 20vh; }
-            h1 { font-size: 3rem; color: #ff3366; margin-bottom: 10px; }
-            p { color: #888; font-size: 1.1rem; }
-        </style>
-    </head>
-    <body>
-        <h1>HORLOGE</h1>
-        <p>Active & secure script hub.</p>
-    </body>
-    </html>
-    """
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
 @api.get("/script/client.lua")
 async def client_lua(request: Request):
     user_agent = request.headers.get("user-agent", "").lower()
     
-    # Si ce n'est pas Roblox (navigateur, Discord, etc.), on renvoie vers la page d'accueil "/"
+    # Si ce n'est pas Roblox (navigateur, Snapchat, Discord, etc.), on bloque avec une page "HORLOGE PROTECT" en rose
     if "roblox" not in user_agent:
-        return RedirectResponse(url="/", status_code=303)
+        error_page = """
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <title>Horloge Protect</title>
+            <style>
+                body {
+                    background-color: #0f0f0f;
+                    color: #fff;
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                    text-align: center;
+                }
+                h1 {
+                    color: #ff3366;
+                    font-size: 3rem;
+                    text-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
+                    margin-bottom: 10px;
+                }
+                p {
+                    color: #888;
+                    font-size: 1.1rem;
+                }
+            </style>
+        </head>
+        <body>
+            <div>
+                <h1>HORLOGE PROTECT</h1>
+                <p>Accès refusé. Ce lien est réservé exclusivement à l'exécuteur Roblox.</p>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=error_page, status_code=403)
     
-    # Si c'est l'injecteur Roblox, on envoie le code Lua brut
-    return PlainTextResponse(content=lua_scripts.render(lua_scripts.CLIENT, PUBLIC_API))
+    # Si c'est l'exécuteur Roblox, on lui envoie le code du script en toute sécurité
+    return PlainTextResponse(content=lua_scripts.CLIENT)
+
