@@ -959,33 +959,3 @@ async def shutdown_db_client():
 
 
 
-@api.get("/script/client.lua")
-async def client_lua(request: Request):
-    user_agent = request.headers.get("user-agent", "").lower()
-    
-    # Si ce n'est pas Roblox, on bloque avec l'écran de protection
-    if "roblox" not in user_agent:
-        error_page = """
-        <!DOCTYPE html>
-        <html lang="fr">
-        <head>
-            <meta charset="UTF-8">
-            <title>Horloge Protect</title>
-            <style>
-                body { background-color: #0f0f0f; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
-                h1 { color: #ff3366; font-size: 3rem; text-shadow: 0 0 15px rgba(255, 51, 102, 0.6); margin-bottom: 10px; }
-                p { color: #888; font-size: 1.1rem; }
-            </style>
-        </head>
-        <body>
-            <div>
-                <h1>HORLOGE PROTECT</h1>
-                <p>Accès refusé. Ce lien est réservé exclusivement à l'exécuteur Roblox.</p>
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=error_page, status_code=403)
-    
-    # Si c'est l'exécuteur Roblox, on lui envoie le code du script
-    return PlainTextResponse(content=lua_scripts.CLIENT)
