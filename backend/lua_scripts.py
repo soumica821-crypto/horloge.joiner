@@ -218,7 +218,7 @@ local hopTry = 0
 local function hop()
     hopTry = hopTry + 1
     if hopTry % 2 == 1 then
-        TeleportService:Teleport(game.PlaceId, LP) -- random server
+        TeleportService:Teleport(game.PlaceId, LP)
         return
     end
     local body = httpGet(("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100"):format(game.PlaceId))
