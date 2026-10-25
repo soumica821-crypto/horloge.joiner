@@ -55,7 +55,7 @@ local function buildUI(title)
     pcall(function() if syn and syn.protect_gui then syn.protect_gui(sg) end end)
     if not pcall(function() sg.Parent = parent end) then sg.Parent = LP:WaitForChild("PlayerGui") end
     
-    local main = new("Frame", {Size = UDim2.fromOffset(390, 440), Position = UDim2.new(0, 24, 0.5, -220), BackgroundColor3 = Color3.fromRGB(10, 10, 14), BorderSizePixel = 0, Active = true, Draggable = true}, sg)
+    local main = new("Frame", {Size = UDim2.fromOffset(430, 480), Position = UDim2.new(0, 24, 0.5, -240), BackgroundColor3 = Color3.fromRGB(10, 10, 14), BorderSizePixel = 0, Active = true, Draggable = true}, sg)
     corner(main, 14)
     new("UIStroke", {Color = PINK, Transparency = 0.55, Thickness = 1}, main)
     
@@ -78,11 +78,11 @@ local function buildUI(title)
     new("UIListLayout", {Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder}, list)
     new("UIPadding", {PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 10)}, list)
 
-    -- Panel WL / BL & Min Gen
+    -- Panel WL / BL & Min Gen (Agrandit)
     local wlPanel = new("Frame", {Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(0, 0), BackgroundColor3 = Color3.fromRGB(12, 12, 17), BorderSizePixel = 0, Visible = false, ZIndex = 5}, main)
     corner(wlPanel, 14)
     
-    new("TextLabel", {Size = UDim2.new(1, -32, 0, 36), Position = UDim2.fromOffset(16, 12), BackgroundTransparency = 1, Text = "Whitelist / Blacklist & Filters", Font = Enum.Font.GothamBlack, TextSize = 15, TextColor3 = PINK, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, wlPanel)
+    new("TextLabel", {Size = UDim2.new(1, -32, 0, 36), Position = UDim2.fromOffset(16, 12), BackgroundTransparency = 1, Text = "Brainrot Whitelist & Blacklist", Font = Enum.Font.GothamBlack, TextSize = 15, TextColor3 = PINK, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, wlPanel)
     local closeWl = new("TextButton", {Size = UDim2.fromOffset(28, 28), Position = UDim2.new(1, -42, 0, 12), BackgroundColor3 = Color3.fromRGB(30, 30, 38), Text = "X", TextColor3 = Color3.new(1, 1, 1), Font = Enum.Font.GothamBold, TextSize = 14, AutoButtonColor = true, ZIndex = 6}, wlPanel)
     corner(closeWl, 8)
 
@@ -92,19 +92,8 @@ local function buildUI(title)
     corner(minGenBox, 8)
     new("UIPadding", {PaddingLeft = UDim.new(0, 8)}, minGenBox)
 
-    -- Add WL/BL entry
-    new("TextLabel", {Size = UDim2.new(1, -32, 0, 18), Position = UDim2.fromOffset(16, 112), BackgroundTransparency = 1, Text = "Add Brainrot (Name):", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = GREY, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, wlPanel)
-    local nameBox = new("TextBox", {Size = UDim2.new(1, -110, 0, 30), Position = UDim2.fromOffset(16, 134), BackgroundColor3 = Color3.fromRGB(20, 20, 28), PlaceholderText = "ex: nibini pizza Nina", Text = "", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), ClearTextOnFocus = false, ZIndex = 6}, wlPanel)
-    corner(nameBox, 8)
-    new("UIPadding", {PaddingLeft = UDim.new(0, 8)}, nameBox)
-
-    local modeBtn = new("TextButton", {Size = UDim2.fromOffset(70, 30), Position = UDim2.new(1, -88, 0, 134), BackgroundColor3 = RED, Text = "BL", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), AutoButtonColor = true, ZIndex = 6}, wlPanel)
-    corner(modeBtn, 8)
-
-    local addBtn = new("TextButton", {Size = UDim2.new(1, -32, 0, 32), Position = UDim2.fromOffset(16, 174), BackgroundColor3 = PINK, Text = "Add Rule", Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = Color3.new(1, 1, 1), AutoButtonColor = true, ZIndex = 6}, wlPanel)
-    corner(addBtn, 8)
-
-    local rulesList = new("ScrollingFrame", {Size = UDim2.new(1, -32, 1, -220), Position = UDim2.fromOffset(16, 214), BackgroundColor3 = Color3.fromRGB(16, 16, 22), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 6}, wlPanel)
+    -- Scrolling list of all animals with WL/BL buttons next to each
+    local rulesList = new("ScrollingFrame", {Size = UDim2.new(1, -32, 1, -126), Position = UDim2.fromOffset(16, 114), BackgroundColor3 = Color3.fromRGB(16, 16, 22), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 6}, wlPanel)
     corner(rulesList, 10)
     new("UIListLayout", {Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder}, rulesList)
     new("UIPadding", {PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4)}, rulesList)
@@ -112,21 +101,63 @@ local function buildUI(title)
     wlPanelBtn.MouseButton1Click:Connect(function() wlPanel.Visible = true end)
     closeWl.MouseButton1Click:Connect(function() wlPanel.Visible = false end)
 
-    local isBlMode = true
-    modeBtn.MouseButton1Click:Connect(function()
-        isBlMode = not isBlMode
-        modeBtn.Text = isBlMode and "BL" or "WL"
-        modeBtn.BackgroundColor3 = isBlMode and RED or GREEN
-    end)
-
     local minimized = false
     mini.MouseButton1Click:Connect(function()
         minimized = not minimized
         list.Visible, button.Visible = not minimized, not minimized
-        main.Size = minimized and UDim2.fromOffset(390, 88) or UDim2.fromOffset(390, 440)
+        main.Size = minimized and UDim2.fromOffset(430, 88) or UDim2.fromOffset(430, 480)
     end)
     
-    return {status = status, stats = stats, button = button, list = list, minGenBox = minGenBox, nameBox = nameBox, addBtn = addBtn, modeBtn = modeBtn, rulesList = rulesList, isBlMode = function() return isBlMode end}
+    local wlRules = {}
+    
+    -- Populate animals list automatically from ReplicatedStorage
+    pcall(function()
+        local animalsFolder = ReplicatedStorage:FindFirstChild("Models") and ReplicatedStorage.Models:FindFirstChild("Animals")
+        if animalsFolder then
+            for _, animal in ipairs(animalsFolder:GetChildren()) do
+                local animName = animal.Name
+                local row = new("Frame", {Size = UDim2.new(1, 0, 0, 32), BackgroundColor3 = Color3.fromRGB(20, 20, 28), BorderSizePixel = 0, ZIndex = 7}, rulesList)
+                corner(row, 6)
+                new("TextLabel", {Size = UDim2.new(1, -80, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1, Text = animName, Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 7}, row)
+                
+                local wlBtn = new("TextButton", {Size = UDim2.fromOffset(32, 22), Position = UDim2.new(1, -74, 0.5, -11), BackgroundColor3 = Color3.fromRGB(40, 40, 50), Text = "WL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = GREEN, ZIndex = 7}, row)
+                corner(wlBtn, 4)
+                
+                local blBtn = new("TextButton", {Size = UDim2.fromOffset(32, 22), Position = UDim2.new(1, -38, 0.5, -11), BackgroundColor3 = Color3.fromRGB(40, 40, 50), Text = "BL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = RED, ZIndex = 7}, row)
+                corner(blBtn, 4)
+                
+                wlBtn.MouseButton1Click:Connect(function()
+                    local key = animName:lower()
+                    if wlRules[key] == "WL" then
+                        wlRules[key] = nil
+                        wlBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                    else
+                        wlRules[key] = "WL"
+                        wlBtn.BackgroundColor3 = GREEN
+                        wlBtn.TextColor3 = Color3.new(1, 1, 1)
+                        blBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                        blBtn.TextColor3 = RED
+                    end
+                end)
+                
+                blBtn.MouseButton1Click:Connect(function()
+                    local key = animName:lower()
+                    if wlRules[key] == "BL" then
+                        wlRules[key] = nil
+                        blBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                    else
+                        wlRules[key] = "BL"
+                        blBtn.BackgroundColor3 = RED
+                        blBtn.TextColor3 = Color3.new(1, 1, 1)
+                        wlBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                        wlBtn.TextColor3 = GREEN
+                    end
+                end)
+            end
+        end
+    end)
+    
+    return {status = status, stats = stats, button = button, list = list, minGenBox = minGenBox, wlRules = wlRules}
 end
 
 local imgCache = {}
@@ -295,32 +326,7 @@ CLIENT = COMMON + r'''
 local KEY = (getgenv and getgenv().script_key) or script_key
 local HWID = getHwid()
 local ui = buildUI("Horloge Joiner")
-
--- Whitelist / Blacklist and Filters storage
-local wlRules = {} -- format: {["name"] = "BL" or "WL"}
-
-ui.addBtn.MouseButton1Click:Connect(function()
-    local name = ui.nameBox.Text
-    if name ~= "" then
-        local mode = ui.isBlMode() and "BL" or "WL"
-        wlRules[name:lower()] = mode
-        ui.nameBox.Text = ""
-        
-        -- Refresh rules display list
-        for _, c in ipairs(ui.rulesList:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
-        for n, m in pairs(wlRules) do
-            local f = new("Frame", {Size = UDim2.new(1, 0, 0, 28), BackgroundColor3 = Color3.fromRGB(20, 20, 28), BorderSizePixel = 0, ZIndex = 7}, ui.rulesList)
-            corner(f, 6)
-            new("TextLabel", {Size = UDim2.new(1, -60, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1, Text = n .. " (" .. m .. ")", Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = m == "BL" and RED or GREEN, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 7}, f)
-            local del = new("TextButton", {Size = UDim2.fromOffset(40, 20), Position = UDim2.new(1, -46, 0.5, -10), BackgroundColor3 = RED, Text = "Del", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = Color3.new(1, 1, 1), ZIndex = 7}, f)
-            corner(del, 4)
-            del.MouseButton1Click:Connect(function()
-                wlRules[n] = nil
-                f:Destroy()
-            end)
-        end
-    end
-end)
+local wlRules = ui.wlRules -- Récupération de la liste WL/BL automatique
 
 local auth, err = call("POST", "/script/auth", {key = KEY, hwid = HWID})
 if not auth then
