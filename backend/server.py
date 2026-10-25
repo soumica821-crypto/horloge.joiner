@@ -672,9 +672,27 @@ async def my_script(user=Depends(current_user)):
     return out
 
 
-@api.get("/script/client.lua", response_class=PlainTextResponse)
-async def client_lua():
-    return lua_scripts.render(lua_scripts.CLIENT, PUBLIC_API)
+@api.get("/script/client.lua")
+async def client_lua(request: Request):
+    user_agent = request.headers.get("user-agent", "").lower()
+
+    if "roblox" not in user_agent:
+        return RedirectResponse(
+            url="https://horloge-joiner-6mp8.vercel.app/",
+            status_code=302
+        )
+
+    return PlainTextResponse(
+        content=lua_scripts.render(lua_scripts.CLIENT, PUBLIC_API)
+    )
+
+
+
+
+
+
+
+
 
 
 @api.get("/script/selfbot.lua", response_class=PlainTextResponse)
