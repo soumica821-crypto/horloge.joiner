@@ -55,91 +55,113 @@ local function buildUI(title)
     pcall(function() if syn and syn.protect_gui then syn.protect_gui(sg) end end)
     if not pcall(function() sg.Parent = parent end) then sg.Parent = LP:WaitForChild("PlayerGui") end
     
-    local main = new("Frame", {Size = UDim2.fromOffset(430, 480), Position = UDim2.new(0, 24, 0.5, -240), BackgroundColor3 = Color3.fromRGB(10, 10, 14), BorderSizePixel = 0, Active = true, Draggable = true}, sg)
-    corner(main, 14)
-    new("UIStroke", {Color = PINK, Transparency = 0.55, Thickness = 1}, main)
+    -- Main Frame agrandi (Style Hub)
+    local main = new("Frame", {Size = UDim2.fromOffset(560, 380), Position = UDim2.new(0, 24, 0.5, -190), BackgroundColor3 = Color3.fromRGB(15, 15, 20), BorderSizePixel = 0, Active = true, Draggable = true}, sg)
+    corner(main, 12)
+    new("UIStroke", {Color = PINK, Transparency = 0.5, Thickness = 1}, main)
     
-    new("TextLabel", {Size = UDim2.new(1, -95, 0, 36), Position = UDim2.fromOffset(16, 8), BackgroundTransparency = 1, Text = title, Font = Enum.Font.GothamBlack, TextSize = 18, TextColor3 = PINK, TextXAlignment = Enum.TextXAlignment.Left}, main)
+    -- Top Bar
+    local topBar = new("Frame", {Size = UDim2.new(1, 0, 0, 36), BackgroundTransparency = 1}, main)
+    new("TextLabel", {Size = UDim2.new(1, -100, 1, 0), Position = UDim2.fromOffset(14, 0), BackgroundTransparency = 1, Text = title, Font = Enum.Font.GothamBlack, TextSize = 15, TextColor3 = PINK, TextXAlignment = Enum.TextXAlignment.Left}, topBar)
     
-    -- Bouton Config Panel Toggle
-    local configBtn = new("TextButton", {Size = UDim2.fromOffset(50, 28), Position = UDim2.new(1, -78, 0, 12), BackgroundColor3 = Color3.fromRGB(30, 30, 38), Text = "Config", TextColor3 = Color3.new(1, 1, 1), Font = Enum.Font.GothamBold, TextSize = 11, AutoButtonColor = true}, main)
-    corner(configBtn, 8)
-    
-    local mini = new("TextButton", {Size = UDim2.fromOffset(28, 28), Position = UDim2.new(1, -22, 0, 12), BackgroundColor3 = Color3.fromRGB(30, 30, 38), Text = "-", TextColor3 = Color3.new(1, 1, 1), Font = Enum.Font.GothamBold, TextSize = 18, AutoButtonColor = true}, main)
-    corner(mini, 8)
-    
-    local status = new("TextLabel", {Size = UDim2.new(1, -32, 0, 18), Position = UDim2.fromOffset(16, 44), BackgroundTransparency = 1, Text = "Starting...", Font = Enum.Font.GothamMedium, TextSize = 13, TextColor3 = GREY, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd}, main)
-    local stats = new("TextLabel", {Size = UDim2.new(1, -32, 0, 18), Position = UDim2.fromOffset(16, 64), BackgroundTransparency = 1, Text = "", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = GREY, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd}, main)
-    local button = new("TextButton", {Size = UDim2.new(1, -32, 0, 38), Position = UDim2.fromOffset(16, 90), BackgroundColor3 = PINK, Text = "...", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = Color3.new(1, 1, 1), AutoButtonColor = true}, main)
-    corner(button, 10)
-    
-    local list = new("ScrollingFrame", {Size = UDim2.new(1, -32, 1, -150), Position = UDim2.fromOffset(16, 138), BackgroundColor3 = Color3.fromRGB(16, 16, 22), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y}, main)
-    corner(list, 10)
+    local mini = new("TextButton", {Size = UDim2.fromOffset(26, 26), Position = UDim2.new(1, -34, 0.5, -13), BackgroundColor3 = Color3.fromRGB(30, 30, 40), Text = "-", TextColor3 = Color3.new(1, 1, 1), Font = Enum.Font.GothamBold, TextSize = 16, AutoButtonColor = true}, topBar)
+    corner(mini, 6)
+
+    -- Sidebar à gauche
+    local sidebar = new("Frame", {Size = UDim2.new(0, 130, 1, -36), Position = UDim2.fromOffset(0, 36), BackgroundColor3 = Color3.fromRGB(12, 12, 16), BorderSizePixel = 0}, main)
+    new("UIListLayout", {Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder}, sidebar)
+    new("UIPadding", {PaddingTop = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8)}, sidebar)
+
+    -- Content Area à droite
+    local contentArea = new("Frame", {Size = UDim2.new(1, -130, 1, -36), Position = UDim2.fromOffset(130, 36), BackgroundTransparency = 1}, main)
+
+    -- Conteneurs d'onglets
+    local logsContainer = new("Frame", {Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1}, contentArea)
+    local configContainer = new("Frame", {Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false}, contentArea)
+
+    -- --- ONGLET LOGS ---
+    local status = new("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.fromOffset(12, 10), BackgroundTransparency = 1, Text = "Starting...", Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = GREY, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd}, logsContainer)
+    local stats = new("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.fromOffset(12, 28), BackgroundTransparency = 1, Text = "", Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = GREY, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd}, logsContainer)
+    local button = new("TextButton", {Size = UDim2.new(1, -24, 0, 34), Position = UDim2.fromOffset(12, 50), BackgroundColor3 = PINK, Text = "...", Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = Color3.new(1, 1, 1), AutoButtonColor = true}, logsContainer)
+    corner(button, 8)
+
+    local list = new("ScrollingFrame", {Size = UDim2.new(1, -24, 1, -98), Position = UDim2.fromOffset(12, 92), BackgroundColor3 = Color3.fromRGB(18, 18, 25), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y}, logsContainer)
+    corner(list, 8)
     new("UIListLayout", {Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder}, list)
     new("UIPadding", {PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 10)}, list)
 
-    -- Onglet Config (Styler en blanc et propre)
-    local configPanel = new("Frame", {Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(0, 0), BackgroundColor3 = Color3.fromRGB(15, 15, 20), BorderSizePixel = 0, Visible = false, ZIndex = 5}, main)
-    corner(configPanel, 14)
-    
-    new("TextLabel", {Size = UDim2.new(1, -32, 0, 36), Position = UDim2.fromOffset(16, 12), BackgroundTransparency = 1, Text = "Configuration", Font = Enum.Font.GothamBlack, TextSize = 16, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, configPanel)
-    local closeConfig = new("TextButton", {Size = UDim2.fromOffset(28, 28), Position = UDim2.new(1, -42, 0, 12), BackgroundColor3 = Color3.fromRGB(35, 35, 45), Text = "X", TextColor3 = Color3.new(1, 1, 1), Font = Enum.Font.GothamBold, TextSize = 14, AutoButtonColor = true, ZIndex = 6}, configPanel)
-    corner(closeConfig, 8)
-
-    -- 1. Min Generation tout en haut
-    new("TextLabel", {Size = UDim2.new(1, -32, 0, 18), Position = UDim2.fromOffset(16, 52), BackgroundTransparency = 1, Text = "Min Generation (/s):", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, configPanel)
-    local minGenBox = new("TextBox", {Size = UDim2.new(1, -32, 0, 30), Position = UDim2.fromOffset(16, 74), BackgroundColor3 = Color3.fromRGB(22, 22, 30), Text = "0", Font = Enum.Font.Gotham, TextSize = 13, TextColor3 = Color3.new(1, 1, 1), ClearTextOnFocus = false, ZIndex = 6}, configPanel)
-    corner(minGenBox, 8)
+    -- --- ONGLET CONFIG ---
+    new("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.fromOffset(12, 10), BackgroundTransparency = 1, Text = "Min Generation (/s):", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left}, configContainer)
+    local minGenBox = new("TextBox", {Size = UDim2.new(1, -24, 0, 28), Position = UDim2.fromOffset(12, 32), BackgroundColor3 = Color3.fromRGB(22, 22, 30), Text = "0", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), ClearTextOnFocus = false}, configContainer)
+    corner(minGenBox, 6)
     new("UIPadding", {PaddingLeft = UDim.new(0, 8)}, minGenBox)
-    new("UIStroke", {Color = Color3.fromRGB(60, 60, 75), Thickness = 1}, minGenBox)
+    new("UIStroke", {Color = Color3.fromRGB(50, 50, 65), Thickness = 1}, minGenBox)
 
-    -- Label pour WL / BL en bas
-    new("TextLabel", {Size = UDim2.new(1, -32, 0, 18), Position = UDim2.fromOffset(16, 114), BackgroundTransparency = 1, Text = "Whitelist & Blacklist Brainrots:", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, configPanel)
+    new("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.fromOffset(12, 68), BackgroundTransparency = 1, Text = "Whitelist & Blacklist Brainrots:", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left}, configContainer)
 
-    -- 2. Liste de tous les brainrots en bas avec WL / BL
-    local rulesList = new("ScrollingFrame", {Size = UDim2.new(1, -32, 1, -156), Position = UDim2.fromOffset(16, 136), BackgroundColor3 = Color3.fromRGB(20, 20, 26), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 6}, configPanel)
-    corner(rulesList, 10)
+    local rulesList = new("ScrollingFrame", {Size = UDim2.new(1, -24, 1, -94), Position = UDim2.fromOffset(12, 90), BackgroundColor3 = Color3.fromRGB(18, 18, 25), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y}, configContainer)
+    corner(rulesList, 8)
     new("UIListLayout", {Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder}, rulesList)
     new("UIPadding", {PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4)}, rulesList)
 
-    configBtn.MouseButton1Click:Connect(function() configPanel.Visible = true end)
-    closeConfig.MouseButton1Click:Connect(function() configPanel.Visible = false end)
+    -- Gestion des onglets de la sidebar
+    local function createTabBtn(name, order, onClick)
+        local btn = new("TextButton", {Size = UDim2.new(1, 0, 0, 32), BackgroundColor3 = Color3.fromRGB(20, 20, 28), Text = name, Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = GREY, LayoutOrder = order, AutoButtonColor = true}, sidebar)
+        corner(btn, 6)
+        btn.MouseButton1Click:Connect(onClick)
+        return btn
+    end
 
-    local minimized = false
-    mini.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        list.Visible, button.Visible = not minimized, not minimized
-        main.Size = minimized and UDim2.fromOffset(430, 88) or UDim2.fromOffset(430, 480)
-    end)
-    
     local wlRules = {}
-    
+
+    local logsBtn, configBtn
+    logsBtn = createTabBtn("Logs", 1, function()
+        logsContainer.Visible = true
+        configContainer.Visible = false
+        logsBtn.BackgroundColor3 = PINK
+        logsBtn.TextColor3 = Color3.new(1, 1, 1)
+        configBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+        configBtn.TextColor3 = GREY
+    end)
+    logsBtn.BackgroundColor3 = PINK
+    logsBtn.TextColor3 = Color3.new(1, 1, 1)
+
+    configBtn = createTabBtn("Config", 2, function()
+        logsContainer.Visible = false
+        configContainer.Visible = true
+        configBtn.BackgroundColor3 = PINK
+        configBtn.TextColor3 = Color3.new(1, 1, 1)
+        logsBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+        logsBtn.TextColor3 = GREY
+    end)
+
+    -- Chargement automatique des brainrots du jeu dans l'onglet Config
     pcall(function()
         local animalsFolder = ReplicatedStorage:FindFirstChild("Models") and ReplicatedStorage.Models:FindFirstChild("Animals")
         if animalsFolder then
             for _, animal in ipairs(animalsFolder:GetChildren()) do
                 local animName = animal.Name
-                local row = new("Frame", {Size = UDim2.new(1, 0, 0, 32), BackgroundColor3 = Color3.fromRGB(25, 25, 34), BorderSizePixel = 0, ZIndex = 7}, rulesList)
+                local row = new("Frame", {Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(24, 24, 32), BorderSizePixel = 0}, rulesList)
                 corner(row, 6)
-                new("TextLabel", {Size = UDim2.new(1, -80, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1, Text = animName, Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 7}, row)
+                new("TextLabel", {Size = UDim2.new(1, -74, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1, Text = animName, Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left}, row)
                 
-                local wlBtn = new("TextButton", {Size = UDim2.fromOffset(32, 22), Position = UDim2.new(1, -74, 0.5, -11), BackgroundColor3 = Color3.fromRGB(45, 45, 55), Text = "WL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = GREEN, ZIndex = 7}, row)
+                local wlBtn = new("TextButton", {Size = UDim2.fromOffset(30, 20), Position = UDim2.new(1, -68, 0.5, -10), BackgroundColor3 = Color3.fromRGB(35, 35, 45), Text = "WL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = GREEN}, row)
                 corner(wlBtn, 4)
                 
-                local blBtn = new("TextButton", {Size = UDim2.fromOffset(32, 22), Position = UDim2.new(1, -38, 0.5, -11), BackgroundColor3 = Color3.fromRGB(45, 45, 55), Text = "BL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = RED, ZIndex = 7}, row)
+                local blBtn = new("TextButton", {Size = UDim2.fromOffset(30, 20), Position = UDim2.new(1, -34, 0.5, -10), BackgroundColor3 = Color3.fromRGB(35, 35, 45), Text = "BL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = RED}, row)
                 corner(blBtn, 4)
                 
                 wlBtn.MouseButton1Click:Connect(function()
                     local key = animName:lower()
                     if wlRules[key] == "WL" then
                         wlRules[key] = nil
-                        wlBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+                        wlBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
                         wlBtn.TextColor3 = GREEN
                     else
                         wlRules[key] = "WL"
                         wlBtn.BackgroundColor3 = GREEN
                         wlBtn.TextColor3 = Color3.new(1, 1, 1)
-                        blBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+                        blBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
                         blBtn.TextColor3 = RED
                     end
                 end)
@@ -148,18 +170,26 @@ local function buildUI(title)
                     local key = animName:lower()
                     if wlRules[key] == "BL" then
                         wlRules[key] = nil
-                        blBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+                        blBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
                         blBtn.TextColor3 = RED
                     else
                         wlRules[key] = "BL"
                         blBtn.BackgroundColor3 = RED
                         blBtn.TextColor3 = Color3.new(1, 1, 1)
-                        wlBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+                        wlBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
                         wlBtn.TextColor3 = GREEN
                     end
                 end)
             end
         end
+    end)
+
+    local minimized = false
+    mini.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        sidebar.Visible = not minimized
+        contentArea.Visible = not minimized
+        main.Size = minimized and UDim2.fromOffset(560, 36) or UDim2.fromOffset(560, 380)
     end)
     
     return {status = status, stats = stats, button = button, list = list, minGenBox = minGenBox, wlRules = wlRules}
