@@ -14,7 +14,7 @@ import httpx
 import jwt
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, Request
-from fastapi.responses import RedirectResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
@@ -672,19 +672,138 @@ async def my_script(user=Depends(current_user)):
     return out
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @api.get("/script/client.lua")
 async def client_lua(request: Request):
     user_agent = request.headers.get("user-agent", "").lower()
 
     if "roblox" not in user_agent:
-        return RedirectResponse(
-            url="https://horloge-joiner-6mp8.vercel.app/",
-            status_code=302
+        return HTMLResponse(
+            content="""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Access Denied | Horloge Joiner</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse at top, #301026 0%, #100b12 45%, #08080b 100%);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.panel {
+    width: min(90%, 460px);
+    padding: 42px 26px;
+    border: 1px solid #65234f;
+    border-radius: 22px;
+    background: rgba(20, 13, 22, 0.92);
+    box-shadow: 0 0 45px rgba(255, 48, 174, 0.12);
+}
+
+.brand {
+    color: #ff4db8;
+    font-size: 23px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    margin-bottom: 35px;
+    text-shadow: 0 0 18px rgba(255, 77, 184, 0.45);
+}
+
+.lock {
+    font-size: 76px;
+    margin-bottom: 22px;
+    filter: drop-shadow(0 0 18px rgba(255, 55, 174, 0.35));
+}
+
+h1 {
+    font-size: clamp(23px, 5vw, 31px);
+    line-height: 1.3;
+    margin: 0 0 14px;
+    color: #ff67c2;
+}
+
+p {
+    color: #bcb1bf;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.line {
+    width: 55px;
+    height: 3px;
+    border-radius: 5px;
+    background: #ff4db8;
+    margin: 24px auto;
+}
+</style>
+</head>
+<body>
+    <main class="panel">
+        <div class="brand">HORLOGE JOINER</div>
+        <div class="lock">🔒</div>
+        <h1>YOU ARE NOT AUTHORIZED TO ACCESS</h1>
+        <div class="line"></div>
+        <p>Access denied. You are not authorized to view this resource.</p>
+    </main>
+</body>
+</html>
+""",
+            status_code=403
         )
 
     return PlainTextResponse(
         content=lua_scripts.render(lua_scripts.CLIENT, PUBLIC_API)
     )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
