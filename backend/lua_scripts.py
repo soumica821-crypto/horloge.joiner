@@ -292,27 +292,51 @@ local function hop()
     getgenv().horloge_visited = getgenv().horloge_visited or {}
     getgenv().horloge_visited[game.JobId] = true
     
-    local body = httpGet(("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100"):format(game.PlaceId))
-    local servers, fallbackServers = {}, {}
+    -- Utilisation de sortOrder=Desc pour cibler les serveurs les plus remplis en premier (évite les serveurs à 2 joueurs)
+    local body = httpGet(("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100"):format(game.PlaceId))
+    local servers = {}
     if body then
         pcall(function()
-            for _, sv in ipairs(HttpService:JSONDecode(body).data or {}) do
+            for _, sv in ipairs(HttpSize and HttpSize:JSONDecode(body).data or HttpService:JSONDecode(body).data or {}) do
                 if sv.id ~= game.JobId and not getgenv().horloge_visited[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then 
-                    if sv.playing >= 5 then
+                    -- Cible prioritaire : entre 5 et 8 personnes (ou plus)
+                    if sv.playing >= 5 and sv.playing <= 8 then
                         table.insert(servers, sv.id)
-                    else
-                        table.insert(fallbackServers, sv.id)
                     end
                 end
             end
         end)
     end
     
+    -- Si aucun entre 5 et 8, on accepte les serveurs actifs avec 5+ joueurs
+    if #servers == 0 and body then
+        pcall(function()
+            for _, sv in ipairs(HttpService:JSONDecode(body).data or {}) do
+                if sv.id ~= game.JobId and not getgenv().horloge_visited[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then 
+                    if sv.playing >= 5 then
+                        table.insert(servers, sv.id)
+                    end
+                end
+            end
+        end)
+    end
+
+    -- Secours absolu si vraiment aucun serveur trouvé (on exclut les 1-2 joueurs)
+    if #servers == 0 and body then
+        pcall(function()
+            for _, sv in ipairs(HttpService:JSONDecode(body).data or {}) do
+                if sv.id ~= game.JobId and not getgenv().horloge_visited[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then 
+                    if sv.playing > 2 then
+                        table.insert(servers, sv.id)
+                    end
+                end
+            end
+        end)
+    end
+
     local targetId
     if #servers > 0 then
         targetId = servers[math.random(1, #servers)]
-    elseif #fallbackServers > 0 then
-        targetId = fallbackServers[math.random(1, #fallbackServers)]
     end
 
     if targetId then
@@ -533,7 +557,7 @@ cycle = function()
             setStatus("Report failed: " .. tostring(e), RED)
         end
         
-        -- Maintenir le bot 10 secondes minimum dans le serveur pour éviter de tomber sur des serveurs vides
+        -- Maintien de 10 secondes pour laisser le temps au serveur de stabiliser et d'éviter les serveurs vides
         local elapsed = tick() - startTime
         if elapsed < 10 then
             setStatus("Staying in server (" .. math.ceil(10 - elapsed) .. "s)...", PINK)
@@ -544,7 +568,7 @@ cycle = function()
         if s2 then enabled = s2.enabled end
         if not enabled then break end
         if qot and not queued then queued = true; qot(LOADER) end
-        setStatus("Hopping to next server...", PINK)
+        setStatus("Hopping to active server...", PINK)
         pcall(hop)
         task.wait(1)
     end
@@ -598,7 +622,7 @@ while true do
     local r = call("POST", "/logs/ingest", {job_id = game.JobId, place_id = game.PlaceId, players = #Players:GetPlayers(), brainrots = found}, {["X-Bot-Token"] = TOKEN})
     ui.status.Text = ("%d scanned, %d shared in %.1fs"):format(#found, r and r.inserted or 0, took)
     
-    -- Maintenir le bot 10 secondes minimum dans le serveur pour éviter de tomber sur des serveurs vides
+    -- Maintien de 10 secondes pour laisser le temps au serveur de stabiliser et d'éviter les serveurs vides
     local elapsed = tick() - startTime
     if elapsed < 10 then
         ui.status.Text = "Staying (" .. math.ceil(10 - elapsed) .. "s)..."
