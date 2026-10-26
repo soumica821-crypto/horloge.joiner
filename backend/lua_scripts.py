@@ -10,7 +10,29 @@ local qot = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and 
 local API = "__API__"
 local PINK, GREY, GREEN, RED = Color3.fromRGB(255, 42, 133), Color3.fromRGB(160, 160, 171), Color3.fromRGB(52, 211, 153), Color3.fromRGB(248, 113, 113)
 
-getgenv().horloge_visited = getgenv().horloge_visited or {}
+-- Système anti-rejoin persistant (sauvegardé dans un fichier pour survivre aux téléportations)
+local VISITED_FILE = "horloge_visited_servers.json"
+local visitedServers = {}
+
+pcall(function()
+    if makefolder and not (isfolder and isfolder("horloge")) then makefolder("horloge") end
+    if isfile and isfile("horloge/" .. VISITED_FILE) then
+        visitedServers = HttpService:JSONDecode(readfile("horloge/" .. VISITED_FILE))
+    end
+end)
+
+local function saveVisited()
+    pcall(function()
+        if writefile then
+            writefile("horloge/" .. VISITED_FILE, HttpService:JSONEncode(visitedServers))
+        end
+    end)
+end
+
+if game.JobId and game.JobId ~= "" then
+    visitedServers[game.JobId] = true
+    saveVisited()
+end
 
 local function getHwid()
     local ok, id = pcall(function() return gethwid and gethwid() end)
@@ -289,9 +311,9 @@ local function httpGet(url)
 end
 
 local function hop()
-    getgenv().horloge_visited = getgenv().horloge_visited or {}
     if game.JobId and game.JobId ~= "" then
-        getgenv().horloge_visited[game.JobId] = true
+        visitedServers[game.JobId] = true
+        saveVisited()
     end
 
     local body = httpGet(("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100"):format(game.PlaceId))
@@ -300,9 +322,9 @@ local function hop()
         pcall(function()
             local decoded = HttpService:JSONDecode(body)
             for _, sv in ipairs(decoded.data or {}) do
-                -- Exclure strictement le serveur actuel et les serveurs déjà visités
-                if sv.id and sv.id ~= game.JobId and not getgenv().horloge_visited[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then
-                    -- Priorité : Serveurs actifs entre 5 et 8+ joueurs
+                -- Exclure strictement le serveur actuel et les serveurs déjà visités (stockés durablement)
+                if sv.id and sv.id ~= game.JobId and not visitedServers[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then
+                    -- Priorité : Serveurs actifs avec 5+ joueurs
                     if sv.playing >= 5 then
                         table.insert(servers, sv.id)
                     end
@@ -311,12 +333,12 @@ local function hop()
         end)
     end
 
-    -- Secours si aucun serveur entre 5+ n'est trouvé dans la liste
+    -- Secours si aucun serveur 5+ n'est disponible
     if #servers == 0 and body then
         pcall(function()
             local decoded = HttpService:JSONDecode(body)
             for _, sv in ipairs(decoded.data or {}) do
-                if sv.id and sv.id ~= game.JobId and not getgenv().horloge_visited[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then
+                if sv.id and sv.id ~= game.JobId and not visitedServers[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then
                     if sv.playing > 2 then
                         table.insert(servers, sv.id)
                     end
@@ -327,11 +349,13 @@ local function hop()
 
     if #servers > 0 then
         local targetId = servers[math.random(1, #servers)]
-        getgenv().horloge_visited[targetId] = true
+        visitedServers[targetId] = true
+        saveVisited()
         TeleportService:TeleportToPlaceInstance(game.PlaceId, targetId, LP)
     else
-        -- Réinitialisation partielle de l'historique si aucun nouveau serveur n'est trouvé pour éviter le blocage
-        getgenv().horloge_visited = {}
+        -- Réinitialisation du fichier si tous les serveurs ont été visités pour éviter le blocage
+        visitedServers = {}
+        saveVisited()
         TeleportService:Teleport(game.PlaceId, LP)
     end
 end
