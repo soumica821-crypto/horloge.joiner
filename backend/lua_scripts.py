@@ -508,7 +508,6 @@ cycle = function()
     if running then return end
     running = true
     while enabled do
-        local startTime = tick()
         setStatus("Scanning server " .. string.sub(game.JobId, 1, 8) .. "...", PINK)
         local found, took = deepScan()
         local r, e = call("POST", "/script/report", {key = KEY, hwid = HWID, job_id = game.JobId, place_id = game.PlaceId, players = #Players:GetPlayers(), brainrots = found, selfbot = true})
@@ -517,25 +516,17 @@ cycle = function()
         end
         if r then
             setStats(r)
-            setStatus(("%d scanned, %d shared in %.1fs"):format(#found, r.inserted, took), GREEN)
+            setStatus(("%d scanned, %d shared in %.1fs -> hopping"):format(#found, r.inserted, took), GREEN)
         else
             setStatus("Report failed: " .. tostring(e), RED)
-        end
-        
-        -- Maintenir le bot 10 secondes minimum dans le serveur
-        local elapsed = tick() - startTime
-        if elapsed < 10 then
-            setStatus("Staying in server (" .. math.ceil(10 - elapsed) .. "s)...", PINK)
-            task.wait(10 - elapsed)
         end
 
         local s2 = call("POST", "/script/selfbot/status", {key = KEY, hwid = HWID})
         if s2 then enabled = s2.enabled end
         if not enabled then break end
         if qot and not queued then queued = true; qot(LOADER) end
-        setStatus("Hopping to next server...", PINK)
         pcall(hop)
-        task.wait(6)
+        task.wait(1)
     end
     running = false
     setStatus("Self bot stopped. Press START to run.", GREY)
@@ -581,23 +572,13 @@ local ui = buildBotUI("Horloge Bot")
 local queued = false
 TeleportService.TeleportInitFailed:Connect(function() ui.status.Text = "Hop failed, retrying..." end)
 while true do
-    local startTime = tick()
     ui.status.Text = "Scanning..."
     local found, took = deepScan()
     local r = call("POST", "/logs/ingest", {job_id = game.JobId, place_id = game.PlaceId, players = #Players:GetPlayers(), brainrots = found}, {["X-Bot-Token"] = TOKEN})
-    ui.status.Text = ("%d scanned, %d shared in %.1fs"):format(#found, r and r.inserted or 0, took)
-    
-    -- Maintenir le bot 10 secondes minimum dans le serveur
-    local elapsed = tick() - startTime
-    if elapsed < 10 then
-        ui.status.Text = "Staying (" .. math.ceil(10 - elapsed) .. "s)..."
-        task.wait(10 - elapsed)
-    end
-
+    ui.status.Text = ("%d scanned, %d shared in %.1fs -> hopping"):format(#found, r and r.inserted or 0, took)
     if qot and not queued then queued = true; qot(LOADER) end
-    ui.status.Text = "Hopping..."
     pcall(hop)
-    task.wait(6)
+    task.wait(1)
 end
 '''
 
