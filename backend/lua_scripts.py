@@ -10,6 +10,8 @@ local qot = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and 
 local API = "__API__"
 local PINK, GREY, GREEN, RED = Color3.fromRGB(255, 42, 133), Color3.fromRGB(160, 160, 171), Color3.fromRGB(52, 211, 153), Color3.fromRGB(248, 113, 113)
 
+getgenv().horloge_visited = getgenv().horloge_visited or {}
+
 local function getHwid()
     local ok, id = pcall(function() return gethwid and gethwid() end)
     if ok and id then return tostring(id) end
@@ -91,15 +93,19 @@ local function buildUI(title)
     new("UIPadding", {PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 10)}, list)
 
     -- --- ONGLET CONFIG ---
-    new("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.fromOffset(12, 10), BackgroundTransparency = 1, Text = "Min Generation (/s):", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left}, configContainer)
-    local minGenBox = new("TextBox", {Size = UDim2.new(1, -24, 0, 28), Position = UDim2.fromOffset(12, 32), BackgroundColor3 = Color3.fromRGB(22, 22, 30), Text = "0", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), ClearTextOnFocus = false}, configContainer)
+    new("TextLabel", {Size = UDim2.new(1, -24, 0, 16), Position = UDim2.fromOffset(12, 8), BackgroundTransparency = 1, Text = "Min Generation (/s):", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left}, configContainer)
+    local minGenBox = new("TextBox", {Size = UDim2.new(1, -24, 0, 26), Position = UDim2.fromOffset(12, 26), BackgroundColor3 = Color3.fromRGB(22, 22, 30), Text = "0", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), ClearTextOnFocus = false}, configContainer)
     corner(minGenBox, 6)
     new("UIPadding", {PaddingLeft = UDim.new(0, 8)}, minGenBox)
     new("UIStroke", {Color = Color3.fromRGB(50, 50, 65), Thickness = 1}, minGenBox)
 
-    new("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.fromOffset(12, 68), BackgroundTransparency = 1, Text = "Whitelist & Blacklist Brainrots:", Font = Enum.Font.GothamBold, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left}, configContainer)
+    -- Barre de recherche de Brainrots
+    local searchBox = new("TextBox", {Size = UDim2.new(1, -24, 0, 26), Position = UDim2.fromOffset(12, 58), BackgroundColor3 = Color3.fromRGB(22, 22, 30), PlaceholderText = "Search brainrot (ex: a, drag)...", Text = "", Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), ClearTextOnFocus = false}, configContainer)
+    corner(searchBox, 6)
+    new("UIPadding", {PaddingLeft = UDim.new(0, 8)}, searchBox)
+    new("UIStroke", {Color = Color3.fromRGB(50, 50, 65), Thickness = 1}, searchBox)
 
-    local rulesList = new("ScrollingFrame", {Size = UDim2.new(1, -24, 1, -94), Position = UDim2.fromOffset(12, 90), BackgroundColor3 = Color3.fromRGB(18, 18, 25), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y}, configContainer)
+    local rulesList = new("ScrollingFrame", {Size = UDim2.new(1, -24, 1, -122), Position = UDim2.fromOffset(12, 90), BackgroundColor3 = Color3.fromRGB(18, 18, 25), BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = PINK, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y}, configContainer)
     corner(rulesList, 8)
     new("UIListLayout", {Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder}, rulesList)
     new("UIPadding", {PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4)}, rulesList)
@@ -113,6 +119,7 @@ local function buildUI(title)
     end
 
     local wlRules = {}
+    local animalRows = {}
 
     local logsBtn, configBtn
     logsBtn = createTabBtn("Logs", 1, function()
@@ -135,55 +142,6 @@ local function buildUI(title)
         logsBtn.TextColor3 = GREY
     end)
 
-    -- Chargement automatique des brainrots du jeu dans l'onglet Config
-    pcall(function()
-        local animalsFolder = ReplicatedStorage:FindFirstChild("Models") and ReplicatedStorage.Models:FindFirstChild("Animals")
-        if animalsFolder then
-            for _, animal in ipairs(animalsFolder:GetChildren()) do
-                local animName = animal.Name
-                local row = new("Frame", {Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(24, 24, 32), BorderSizePixel = 0}, rulesList)
-                corner(row, 6)
-                new("TextLabel", {Size = UDim2.new(1, -74, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1, Text = animName, Font = Enum.Font.GothamMedium, TextSize = 11, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left}, row)
-                
-                local wlBtn = new("TextButton", {Size = UDim2.fromOffset(30, 20), Position = UDim2.new(1, -68, 0.5, -10), BackgroundColor3 = Color3.fromRGB(35, 35, 45), Text = "WL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = GREEN}, row)
-                corner(wlBtn, 4)
-                
-                local blBtn = new("TextButton", {Size = UDim2.fromOffset(30, 20), Position = UDim2.new(1, -34, 0.5, -10), BackgroundColor3 = Color3.fromRGB(35, 35, 45), Text = "BL", Font = Enum.Font.GothamBold, TextSize = 10, TextColor3 = RED}, row)
-                corner(blBtn, 4)
-                
-                wlBtn.MouseButton1Click:Connect(function()
-                    local key = animName:lower()
-                    if wlRules[key] == "WL" then
-                        wlRules[key] = nil
-                        wlBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-                        wlBtn.TextColor3 = GREEN
-                    else
-                        wlRules[key] = "WL"
-                        wlBtn.BackgroundColor3 = GREEN
-                        wlBtn.TextColor3 = Color3.new(1, 1, 1)
-                        blBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-                        blBtn.TextColor3 = RED
-                    end
-                end)
-                
-                blBtn.MouseButton1Click:Connect(function()
-                    local key = animName:lower()
-                    if wlRules[key] == "BL" then
-                        wlRules[key] = nil
-                        blBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-                        blBtn.TextColor3 = RED
-                    else
-                        wlRules[key] = "BL"
-                        blBtn.BackgroundColor3 = RED
-                        blBtn.TextColor3 = Color3.new(1, 1, 1)
-                        wlBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-                        wlBtn.TextColor3 = GREEN
-                    end
-                end)
-            end
-        end
-    end)
-
     local minimized = false
     mini.MouseButton1Click:Connect(function()
         minimized = not minimized
@@ -192,7 +150,7 @@ local function buildUI(title)
         main.Size = minimized and UDim2.fromOffset(560, 36) or UDim2.fromOffset(560, 380)
     end)
     
-    return {status = status, stats = stats, button = button, list = list, minGenBox = minGenBox, wlRules = wlRules}
+    return {status = status, stats = stats, button = button, list = list, minGenBox = minGenBox, wlRules = wlRules, rulesList = rulesList, searchBox = searchBox, animalRows = animalRows}
 end
 
 local imgCache = {}
@@ -211,10 +169,9 @@ local function webImage(url)
     return nil
 end
 
-
 local function brainrotPic(parent, name, url)
-    local box = new("Frame", {Size = UDim2.fromOffset(38, 38), Position = UDim2.fromOffset(4, 4), BackgroundColor3 = Color3.fromRGB(16, 16, 22), BorderSizePixel = 0}, parent)
-    corner(box, 8)
+    local box = new("Frame", {Size = UDim2.fromOffset(36, 36), Position = UDim2.fromOffset(4, 4), BackgroundColor3 = Color3.fromRGB(16, 16, 22), BorderSizePixel = 0}, parent)
+    corner(box, 6)
     local model
     pcall(function() model = ReplicatedStorage.Models.Animals:FindFirstChild(name) end)
     if model then
@@ -255,7 +212,6 @@ local function addRow(ui, text, color, btnText, onClick, name, image)
         rows[1]:Destroy()
     end
 end
-
 
 local function txt(o)
     if not o or not (o:IsA("TextLabel") or o:IsA("TextButton") or o:IsA("TextBox")) then return nil end
@@ -332,24 +288,25 @@ local function httpGet(url)
     return nil
 end
 
-local hopTry = 0
 local function hop()
-    hopTry = hopTry + 1
-    if hopTry % 2 == 1 then
-        TeleportService:Teleport(game.PlaceId, LP) 
-        return
-    end
+    getgenv().horloge_visited = getgenv().horloge_visited or {}
+    getgenv().horloge_visited[game.JobId] = true
+    
     local body = httpGet(("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100"):format(game.PlaceId))
     local servers = {}
     if body then
         pcall(function()
             for _, sv in ipairs(HttpService:JSONDecode(body).data or {}) do
-                if sv.id ~= game.JobId and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then table.insert(servers, sv.id) end
+                if sv.id ~= game.JobId and not getgenv().horloge_visited[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then 
+                    table.insert(servers, sv.id) 
+                end
             end
         end)
     end
     if #servers > 0 then
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], LP)
+        local targetId = servers[math.random(1, #servers)]
+        getgenv().horloge_visited[targetId] = true
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, targetId, LP)
     else
         TeleportService:Teleport(game.PlaceId, LP)
     end
@@ -362,6 +319,81 @@ local KEY = (getgenv and getgenv().script_key) or script_key
 local HWID = getHwid()
 local ui = buildUI("Horloge Joiner")
 local wlRules = ui.wlRules
+
+-- Chargement automatique et tri A-Z de tous les brainrots du jeu dans l'onglet Config
+task.spawn(function()
+    local animalsFolder
+    pcall(function()
+        animalsFolder = ReplicatedStorage:WaitForChild("Models", 5) and ReplicatedStorage.Models:WaitForChild("Animals", 5)
+    end)
+    if not animalsFolder then
+        pcall(function() animalsFolder = ReplicatedStorage.Models.Animals end)
+    end
+    if animalsFolder then
+        local animals = animalsFolder:GetChildren()
+        table.sort(animals, function(a, b) return a.Name:lower() < b.Name:lower() end)
+        
+        for _, animal in ipairs(animals) do
+            local animName = animal.Name
+            local row = new("Frame", {Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = Color3.fromRGB(24, 24, 32), BorderSizePixel = 0}, ui.rulesList)
+            corner(row, 6)
+            
+            pcall(function() brainrotPic(row, animName, nil) end)
+            
+            new("TextLabel", {Size = UDim2.new(1, -110, 1, 0), Position = UDim2.fromOffset(46, 0), BackgroundTransparency = 1, Text = animName, Font = Enum.Font.GothamMedium, TextSize = 12, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd}, row)
+            
+            local wlBtn = new("TextButton", {Size = UDim2.fromOffset(32, 24), Position = UDim2.new(1, -74, 0.5, -12), BackgroundColor3 = Color3.fromRGB(35, 35, 45), Text = "WL", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = GREEN}, row)
+            corner(wlBtn, 4)
+            
+            local blBtn = new("TextButton", {Size = UDim2.fromOffset(32, 24), Position = UDim2.new(1, -38, 0.5, -12), BackgroundColor3 = Color3.fromRGB(35, 35, 45), Text = "BL", Font = Enum.Font.GothamBold, TextSize = 11, TextColor3 = RED}, row)
+            corner(blBtn, 4)
+            
+            wlBtn.MouseButton1Click:Connect(function()
+                local key = animName:lower()
+                if wlRules[key] == "WL" then
+                    wlRules[key] = nil
+                    wlBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                    wlBtn.TextColor3 = GREEN
+                else
+                    wlRules[key] = "WL"
+                    wlBtn.BackgroundColor3 = GREEN
+                    wlBtn.TextColor3 = Color3.new(1, 1, 1)
+                    blBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                    blBtn.TextColor3 = RED
+                end
+            end)
+            
+            blBtn.MouseButton1Click:Connect(function()
+                local key = animName:lower()
+                if wlRules[key] == "BL" then
+                    wlRules[key] = nil
+                    blBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                    blBtn.TextColor3 = RED
+                else
+                    wlRules[key] = "BL"
+                    blBtn.BackgroundColor3 = RED
+                    blBtn.TextColor3 = Color3.new(1, 1, 1)
+                    wlBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                    wlBtn.TextColor3 = GREEN
+                end
+            end)
+            
+            table.insert(ui.animalRows, {name = animName:lower(), frame = row})
+        end
+    end
+end)
+
+-- Filtrage dynamique par mot-clé / préfixe (ex: "a" affiche ceux en A, "drag" affiche ceux commençant par drag)
+ui.searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local query = ui.searchBox.Text:lower()
+    for _, item in ipairs(ui.animalRows) do
+        if query == "" or string.sub(item.name, 1, #query) == query then
+            item.frame.Visible = true
+        else
+            item.frame.Visible = false
+        end
+    end
+end)
 
 local auth, err = call("POST", "/script/auth", {key = KEY, hwid = HWID})
 if not auth then
@@ -412,23 +444,25 @@ while true do
             if not seen[log.id] and log.job_id ~= game.JobId then
                 seen[log.id] = true
                 
-                -- Check Blacklist/Whitelist
+                -- Check Blacklist / Whitelist rules
                 local rule = wlRules[(log.name or ""):lower()]
                 local skip = false
                 if rule == "BL" then
                     skip = true
                 end
                 
-                -- Check Minimum Generation filter
-                local minGen = tonumber(ui.minGenBox.Text) or 0
-                if minGen > 0 and not skip then
-                    local genNum = 0
-                    pcall(function()
-                        local numStr = string.match(log.generation or log.value_text or "", "(%d+)")
-                        if numStr then genNum = tonumber(numStr) or 0 end
-                    end)
-                    if genNum < minGen then
-                        skip = true
+                -- Check Minimum Generation filter (bypassed if Whitelisted)
+                if not skip and rule ~= "WL" then
+                    local minGen = tonumber(ui.minGenBox.Text) or 0
+                    if minGen > 0 then
+                        local genNum = 0
+                        pcall(function()
+                            local numStr = string.match(log.generation or log.value_text or "", "(%d+)")
+                            if numStr then genNum = tonumber(numStr) or 0 end
+                        end)
+                        if genNum < minGen then
+                            skip = true
+                        end
                     end
                 end
                 
@@ -474,6 +508,7 @@ cycle = function()
     if running then return end
     running = true
     while enabled do
+        local startTime = tick()
         setStatus("Scanning server " .. string.sub(game.JobId, 1, 8) .. "...", PINK)
         local found, took = deepScan()
         local r, e = call("POST", "/script/report", {key = KEY, hwid = HWID, job_id = game.JobId, place_id = game.PlaceId, players = #Players:GetPlayers(), brainrots = found, selfbot = true})
@@ -482,14 +517,23 @@ cycle = function()
         end
         if r then
             setStats(r)
-            setStatus(("%d brainrots scanned, %d shared in %.1fs -> hopping"):format(#found, r.inserted, took), GREEN)
+            setStatus(("%d scanned, %d shared in %.1fs"):format(#found, r.inserted, took), GREEN)
         else
             setStatus("Report failed: " .. tostring(e), RED)
         end
+        
+        -- Maintenir le bot 10 secondes minimum dans le serveur
+        local elapsed = tick() - startTime
+        if elapsed < 10 then
+            setStatus("Staying in server (" .. math.ceil(10 - elapsed) .. "s)...", PINK)
+            task.wait(10 - elapsed)
+        end
+
         local s2 = call("POST", "/script/selfbot/status", {key = KEY, hwid = HWID})
         if s2 then enabled = s2.enabled end
         if not enabled then break end
         if qot and not queued then queued = true; qot(LOADER) end
+        setStatus("Hopping to next server...", PINK)
         pcall(hop)
         task.wait(6)
     end
@@ -537,11 +581,21 @@ local ui = buildBotUI("Horloge Bot")
 local queued = false
 TeleportService.TeleportInitFailed:Connect(function() ui.status.Text = "Hop failed, retrying..." end)
 while true do
+    local startTime = tick()
     ui.status.Text = "Scanning..."
     local found, took = deepScan()
     local r = call("POST", "/logs/ingest", {job_id = game.JobId, place_id = game.PlaceId, players = #Players:GetPlayers(), brainrots = found}, {["X-Bot-Token"] = TOKEN})
-    ui.status.Text = ("%d scanned, %d shared in %.1fs -> hopping"):format(#found, r and r.inserted or 0, took)
+    ui.status.Text = ("%d scanned, %d shared in %.1fs"):format(#found, r and r.inserted or 0, took)
+    
+    -- Maintenir le bot 10 secondes minimum dans le serveur
+    local elapsed = tick() - startTime
+    if elapsed < 10 then
+        ui.status.Text = "Staying (" .. math.ceil(10 - elapsed) .. "s)..."
+        task.wait(10 - elapsed)
+    end
+
     if qot and not queued then queued = true; qot(LOADER) end
+    ui.status.Text = "Hopping..."
     pcall(hop)
     task.wait(6)
 end
