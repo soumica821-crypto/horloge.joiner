@@ -293,18 +293,29 @@ local function hop()
     getgenv().horloge_visited[game.JobId] = true
     
     local body = httpGet(("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100"):format(game.PlaceId))
-    local servers = {}
+    local servers, fallbackServers = {}, {}
     if body then
         pcall(function()
             for _, sv in ipairs(HttpService:JSONDecode(body).data or {}) do
                 if sv.id ~= game.JobId and not getgenv().horloge_visited[sv.id] and sv.playing and sv.maxPlayers and sv.playing < sv.maxPlayers then 
-                    table.insert(servers, sv.id) 
+                    if sv.playing >= 5 then
+                        table.insert(servers, sv.id)
+                    else
+                        table.insert(fallbackServers, sv.id)
+                    end
                 end
             end
         end)
     end
+    
+    local targetId
     if #servers > 0 then
-        local targetId = servers[math.random(1, #servers)]
+        targetId = servers[math.random(1, #servers)]
+    elseif #fallbackServers > 0 then
+        targetId = fallbackServers[math.random(1, #fallbackServers)]
+    end
+
+    if targetId then
         getgenv().horloge_visited[targetId] = true
         TeleportService:TeleportToPlaceInstance(game.PlaceId, targetId, LP)
     else
