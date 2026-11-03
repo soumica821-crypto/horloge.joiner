@@ -31,7 +31,6 @@ db = client[os.environ["DB_NAME"]]
 JWT_SECRET = os.environ["JWT_SECRET"]
 OWNER_DISCORD_ID = os.environ["OWNER_DISCORD_ID"]
 
-
 def is_owner(u):
     return u.get("discord_id") == OWNER_DISCORD_ID
 BOT_TOKEN = os.environ["BOT_API_TOKEN"]
@@ -44,17 +43,14 @@ MOCK_LOGIN = os.environ["MOCK_LOGIN"].lower() == "true"
 DISCORD_API = "https://discord.com/api/v10"
 PLACE_ID = 109983668079237
 
-
 DIVISIONS = {
-    "king": {"name": "ultra", "capacity": 6, "price": 3.0, "tiers": ["og", "peak", "high", "mid", "low"],
+    "king": {"name": "King", "capacity": 6, "price": 5.0, "tiers": ["og", "peak", "high", "mid", "low"],
              "desc": "Access to every log: OG, Peak, High and Mid."},
-    "slave": {"name": "Save", "capacity": 10, "price": 1.24, "tiers": ["high", "mid", "low"],
+    "slave": {"name": "Slave", "capacity": 10, "price": 3.0, "tiers": ["high", "mid", "low"],
               "desc": "Access to High and Mid logs."},
-    "russian": {"name": "midelin", "capacity": 12, "price": 0.50, "tiers": ["mid", "low"],
+    "russian": {"name": "Russian", "capacity": 12, "price": 1.25, "tiers": ["mid", "low"],
                 "desc": "Access to Mid logs."},
 }
-
-
 MAX_HOURS = 24
 MAX_RENT_PRICE = 5.25
 DEFAULT_SETTINGS = {"system_frozen": False, "frozen_divisions": [], "whitelist_only": False,
@@ -65,10 +61,8 @@ app = FastAPI()
 api = APIRouter(prefix="/api")
 logger = logging.getLogger("horloge")
 
-
 def now():
     return datetime.now(timezone.utc)
-
 
 def clean(doc):
     if doc is None:
@@ -80,11 +74,9 @@ def clean(doc):
         out[k] = v.isoformat() if isinstance(v, datetime) else v
     return out
 
-
 def gen_code(prefix, groups=3):
     alphabet = string.ascii_uppercase + string.digits
     return prefix + "-" + "-".join("".join(secrets.choice(alphabet) for _ in range(4)) for _ in range(groups))
-
 
 def parse_income(text: str) -> Optional[float]:
     m = re.search(r"([\d.,]+)\s*([KMBT]?)", (text or "").replace("$", "").upper())
@@ -95,7 +87,6 @@ def parse_income(text: str) -> Optional[float]:
     except ValueError:
         return None
     return num * {"": 1, "K": 1e3, "M": 1e6, "B": 1e9, "T": 1e12}[m.group(2)]
-
 
 def tier_for(rarity: str, value: float) -> str:
     if rarity == "OG":
@@ -108,23 +99,19 @@ def tier_for(rarity: str, value: float) -> str:
         return "mid"
     return "low"
 
-
 def fmt_value(v: float) -> str:
     for div, s in ((1e12, "T"), (1e9, "B"), (1e6, "M"), (1e3, "K")):
         if v >= div:
             return f"${v / div:.2f}{s}/s"
     return f"${v:.0f}/s"
 
-
 async def get_settings():
     doc = await db.settings.find_one({"_id": "global"}) or {}
     return {**DEFAULT_SETTINGS, **{k: v for k, v in doc.items() if k != "_id"}}
 
-
 # ---------------- Auth ----------------
 def make_token(user_id: str) -> str:
     return jwt.encode({"sub": user_id, "exp": now() + timedelta(days=7)}, JWT_SECRET, algorithm="HS256")
-
 
 async def current_user(authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
@@ -141,12 +128,10 @@ async def current_user(authorization: Optional[str] = Header(None)):
     user["is_admin"] = is_owner(user)
     return user
 
-
 async def admin_user(user=Depends(current_user)):
     if not user["is_admin"]:
         raise HTTPException(403, "Owner only")
     return user
-
 
 async def upsert_user(discord_id, username, display_name, avatar):
     existing = await db.users.find_one({"discord_id": discord_id})
@@ -168,11 +153,9 @@ async def upsert_user(discord_id, username, display_name, avatar):
     })
     return uid
 
-
 @api.get("/auth/config")
 async def auth_config():
     return {"discord_enabled": bool(DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET), "mock_enabled": MOCK_LOGIN and not (DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET)}
-
 
 @api.get("/auth/discord/login")
 async def discord_login():
@@ -183,7 +166,6 @@ async def discord_login():
     params = {"client_id": DISCORD_CLIENT_ID, "response_type": "code", "redirect_uri": DISCORD_REDIRECT_URI,
               "scope": "identify", "state": state, "prompt": "none"}
     return RedirectResponse("https://discord.com/oauth2/authorize?" + urlencode(params), status_code=307)
-
 
 @api.get("/auth/discord/callback")
 async def discord_callback(code: Optional[str] = None, state: Optional[str] = None, error: Optional[str] = None):
@@ -210,10 +192,8 @@ async def discord_callback(code: Optional[str] = None, state: Optional[str] = No
     uid = await upsert_user(p["id"], p["username"], p.get("global_name") or p["username"], avatar)
     return RedirectResponse(f"{FRONTEND_URL}/auth/callback#token={make_token(uid)}", status_code=303)
 
-
 class MockLogin(BaseModel):
     username: str = Field(min_length=2, max_length=32)
-
 
 @api.post("/auth/mock-login")
 async def mock_login(body: MockLogin):
@@ -223,13 +203,11 @@ async def mock_login(body: MockLogin):
     uid = await upsert_user(f"mock-{name.lower()}", name, name, None)
     return {"token": make_token(uid)}
 
-
 # ---------------- Slots helpers ----------------
 def holder(slot):
     if slot.get("rented_to") and slot.get("rent_until") and slot["rent_until"] > now():
         return slot["rented_to"]
     return slot["user_id"]
-
 
 async def live_slots(division=None):
     q = {"expires_at": {"$gt": now()}}
@@ -237,10 +215,8 @@ async def live_slots(division=None):
         q["division"] = division
     return await db.slots.find(q, {"_id": 0}).to_list(500)
 
-
 def slot_end_for(slot, uid):
     return slot["rent_until"] if holder(slot) != slot["user_id"] and holder(slot) == uid else slot["expires_at"]
-
 
 async def user_access(user):
     """Returns list of {division, expires_at, slot_id, rented} the user currently holds."""
@@ -253,26 +229,20 @@ async def user_access(user):
                         "slot_id": s["id"], "rented": s["user_id"] != user["id"]})
     return out
 
-
 def allowed_tiers(access):
     tiers = set()
     for a in access:
-        division = DIVISIONS.get(a["division"])
-        if division:
-            tiers.update(division["tiers"])
+        tiers.update(DIVISIONS[a["division"]]["tiers"])
     return tiers
-
 
 def public_user(u):
     d = clean(u)
     d["is_admin"] = is_owner(u)
     return d
 
-
 async def add_tx(user_id, type_, amount, note, extra=None):
     await db.transactions.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "type": type_,
                                       "amount": round(amount, 2), "note": note, "created_at": now(), **(extra or {})})
-
 
 async def charge(uid, cost):
     r = await db.users.update_one({"id": uid, "balance": {"$gte": cost - 1e-9}},
@@ -280,11 +250,9 @@ async def charge(uid, cost):
     if r.modified_count == 0:
         raise HTTPException(400, "Insufficient balance")
 
-
 async def ensure_key(user):
     if not user.get("key"):
         await db.users.update_one({"id": user["id"]}, {"$set": {"key": gen_code("HJ", 4)}})
-
 
 @api.get("/auth/me")
 async def me(user=Depends(current_user)):
@@ -292,12 +260,10 @@ async def me(user=Depends(current_user)):
                   for s in await live_slots() if s["user_id"] == user["id"] and holder(s) != user["id"]]
     return {**public_user(user), "access": await user_access(user), "rented_out": rented_out}
 
-
 @api.get("/settings/public")
 async def public_settings():
     s = await get_settings()
     return {k: s[k] for k in ("system_frozen", "frozen_divisions", "whitelist_only", "discord_invite")}
-
 
 @api.get("/divisions")
 async def divisions(user=Depends(current_user)):
@@ -320,11 +286,9 @@ async def divisions(user=Depends(current_user)):
                     "frozen": s["system_frozen"] or key in s["frozen_divisions"], "occupants": occ})
     return out
 
-
 class Purchase(BaseModel):
     division: str
     hours: int = Field(ge=1, le=MAX_HOURS)
-
 
 @api.post("/slots/purchase")
 async def purchase(body: Purchase, user=Depends(current_user)):
@@ -356,7 +320,6 @@ async def purchase(body: Purchase, user=Depends(current_user)):
     await add_tx(user["id"], "purchase", -cost, f"{d['name']} slot · {body.hours}h")
     return {"ok": True, "cost": cost}
 
-
 # ---------------- Key ----------------
 @api.post("/key/reset-hwid")
 async def reset_hwid(user=Depends(current_user)):
@@ -368,7 +331,6 @@ async def reset_hwid(user=Depends(current_user)):
     await db.users.update_one({"id": user["id"]}, {"$set": {"hwid": None, "hwid_reset_at": now()}})
     return {"ok": True}
 
-
 @api.post("/key/regen")
 async def regen_key(user=Depends(current_user)):
     if not user.get("key"):
@@ -377,11 +339,9 @@ async def regen_key(user=Depends(current_user)):
     await db.users.update_one({"id": user["id"]}, {"$set": {"key": key, "hwid": None}})
     return {"key": key}
 
-
 class Transfer(BaseModel):
     username: str
     division: str
-
 
 @api.post("/key/transfer")
 async def transfer(body: Transfer, user=Depends(current_user)):
@@ -402,11 +362,9 @@ async def transfer(body: Transfer, user=Depends(current_user)):
     await add_tx(target["id"], "transfer", 0, f"Received {DIVISIONS[body.division]['name']} slot from {user['username']}")
     return {"ok": True}
 
-
 # ---------------- Gift cards ----------------
 class Redeem(BaseModel):
     code: str
-
 
 @api.post("/giftcards/redeem")
 async def redeem(body: Redeem, user=Depends(current_user)):
@@ -419,7 +377,6 @@ async def redeem(body: Redeem, user=Depends(current_user)):
     await add_tx(user["id"], "deposit", card["amount"], f"Gift card {card['code']}")
     return {"ok": True, "amount": card["amount"]}
 
-
 # ---------------- Filters ----------------
 class Filters(BaseModel):
     blacklist: List[str] = []
@@ -428,12 +385,10 @@ class Filters(BaseModel):
     auto_join: bool = True
     self_bot: bool = False
 
-
 @api.put("/me/filters")
 async def set_filters(body: Filters, user=Depends(current_user)):
     await db.users.update_one({"id": user["id"]}, {"$set": {"filters": body.model_dump()}})
     return body.model_dump()
-
 
 # ---------------- Logs ----------------
 async def insert_log(name, mutation, job_id, place_id, players, generation="", source="bot"):
@@ -460,19 +415,16 @@ async def insert_log(name, mutation, job_id, place_id, players, generation="", s
     await db.logs.insert_one(doc)
     return doc
 
-
 class Found(BaseModel):
     name: str
     mutation: str = "Normal"
     generation: str = ""
-
 
 class Ingest(BaseModel):
     job_id: str
     place_id: int = PLACE_ID
     players: int = 0
     brainrots: List[Found] = []
-
 
 @api.post("/logs/ingest")
 async def ingest(body: Ingest, x_bot_token: Optional[str] = Header(None)):
@@ -486,14 +438,12 @@ async def ingest(body: Ingest, x_bot_token: Optional[str] = Header(None)):
                                       "scanned": len(body.brainrots), "logged": n, "source": "bot", "created_at": now()})
     return {"inserted": n}
 
-
 def log_view(log, tiers):
     d = clean(log)
     d["locked"] = log["tier"] not in tiers
     if d["locked"]:
         d["job_id"] = None
     return d
-
 
 @api.get("/logs")
 async def get_logs(limit: int = 60, tier: Optional[str] = None, user=Depends(current_user)):
@@ -502,12 +452,10 @@ async def get_logs(limit: int = 60, tier: Optional[str] = None, user=Depends(cur
     tiers = allowed_tiers(await user_access(user))
     return [log_view(x, tiers) for x in logs]
 
-
 @api.get("/logs/recent")
 async def recent_logs():
     logs = await db.logs.find({}, {"_id": 0, "job_id": 0}).sort("created_at", -1).to_list(8)
     return [clean(x) for x in logs]
-
 
 @api.get("/stats")
 async def stats(user=Depends(current_user)):
@@ -525,7 +473,6 @@ async def stats(user=Depends(current_user)):
     chart = [{"label": "Now" if i == 23 else f"-{23 - i}h", "count": c} for i, c in enumerate(hourly)]
     return {"chart": chart, "counts": counts, "recent": recent, "total": len(logs)}
 
-
 @api.get("/leaderboard")
 async def leaderboard(user=Depends(current_user)):
     top = await db.users.find({"total_spent": {"$gt": 0}}, {"_id": 0, "username": 1, "display_name": 1, "avatar": 1,
@@ -538,11 +485,9 @@ async def leaderboard(user=Depends(current_user)):
              async for x in db.logs.aggregate(pipeline)]
     return {"spenders": top, "brainrots": found}
 
-
 @api.get("/brainrots")
 async def brainrot_index():
     return {"brainrots": BRAINROTS, "mutations": MUTATIONS}
-
 
 # ---------------- Marketplace ----------------
 class ListingIn(BaseModel):
@@ -551,10 +496,8 @@ class ListingIn(BaseModel):
     price: float = Field(gt=0)
     hours: int = Field(default=1, ge=1, le=MAX_HOURS)
 
-
 def remaining_hours(slot):
     return max(0, math.ceil(((slot["expires_at"] - now()).total_seconds() - 60) / 3600))
-
 
 @api.post("/market/listings")
 async def create_listing(body: ListingIn, user=Depends(current_user)):
@@ -582,7 +525,6 @@ async def create_listing(body: ListingIn, user=Depends(current_user)):
     await db.market.insert_one(doc)
     return clean(doc)
 
-
 @api.get("/market/listings")
 async def list_listings(type: str = "rent", division: Optional[str] = None, user=Depends(current_user)):
     q = {"status": "active", "type": type}
@@ -601,7 +543,6 @@ async def list_listings(type: str = "rent", division: Optional[str] = None, user
         out.append(d)
     return out
 
-
 @api.delete("/market/listings/{lid}")
 async def cancel_listing(lid: str, user=Depends(current_user)):
     r = await db.market.update_one({"id": lid, "seller_id": user["id"], "status": "active"},
@@ -610,10 +551,8 @@ async def cancel_listing(lid: str, user=Depends(current_user)):
         raise HTTPException(404, "Listing not found")
     return {"ok": True}
 
-
 class BuyIn(BaseModel):
     hours: int = Field(default=1, ge=1, le=MAX_HOURS)
-
 
 @api.post("/market/listings/{lid}/buy")
 async def buy_listing(lid: str, body: BuyIn, user=Depends(current_user)):
@@ -656,12 +595,10 @@ async def buy_listing(lid: str, body: BuyIn, user=Depends(current_user)):
     await add_tx(lst["seller_id"], "market_sale", cost, note + f" to {user['username']}", extra)
     return {"ok": True, "cost": cost}
 
-
 @api.get("/me/transactions")
 async def my_transactions(user=Depends(current_user)):
     txs = await db.transactions.find({"user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     return [clean(x) for x in txs]
-
 
 # ---------------- Lua script endpoints ----------------
 @api.get("/script")
@@ -675,27 +612,6 @@ async def my_script(user=Depends(current_user)):
         out["selfbot_loader"] = (f'getgenv().script_key = "{user["key"]}"\n'
                                  f'loadstring(game:HttpGet("{PUBLIC_API}/script/selfbot.lua"))()')
     return out
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @api.get("/script/client.lua")
 async def client_lua(request: Request):
@@ -900,40 +816,9 @@ p {
         content=lua_scripts.render(lua_scripts.CLIENT, PUBLIC_API)
     )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @api.get("/script/selfbot.lua", response_class=PlainTextResponse)
 async def selfbot_lua():
     return lua_scripts.render(lua_scripts.OWNER_SELFBOT, PUBLIC_API)
-
 
 @api.get("/script/bot.lua", response_class=PlainTextResponse)
 async def bot_lua(token: str):
@@ -941,11 +826,9 @@ async def bot_lua(token: str):
         raise HTTPException(401, "Invalid bot token")
     return lua_scripts.render(lua_scripts.BOT, PUBLIC_API, BOT_TOKEN)
 
-
 class ScriptAuth(BaseModel):
     key: str
     hwid: str
-
 
 async def script_user(body: ScriptAuth):
     user = await db.users.find_one({"key": body.key}, {"_id": 0})
@@ -958,7 +841,6 @@ async def script_user(body: ScriptAuth):
     user["is_admin"] = is_owner(user)
     return user
 
-
 @api.post("/script/auth")
 async def script_auth(body: ScriptAuth):
     user = await script_user(body)
@@ -969,10 +851,8 @@ async def script_auth(body: ScriptAuth):
             "self_bot": user["filters"].get("self_bot", False), "auto_join": user["filters"].get("auto_join", True),
             "server_time": now().isoformat()}
 
-
 class ScriptSettings(ScriptAuth):
     auto_join: bool
-
 
 @api.post("/script/settings")
 async def script_settings(body: ScriptSettings):
@@ -980,10 +860,8 @@ async def script_settings(body: ScriptSettings):
     await db.users.update_one({"id": user["id"]}, {"$set": {"filters.auto_join": body.auto_join}})
     return {"auto_join": body.auto_join}
 
-
 class Poll(ScriptAuth):
     since: Optional[str] = None
-
 
 @api.post("/script/poll")
 async def script_poll(body: Poll):
@@ -1011,14 +889,12 @@ async def script_poll(body: Poll):
         logs.append({k: x.get(k) for k in ("id", "name", "mutation", "value_text", "tier", "job_id", "place_id", "image")})
     return {"logs": logs, "auto_join": f.get("auto_join", True), "server_time": t.isoformat()}
 
-
 class Report(ScriptAuth):
     job_id: str
     place_id: int = PLACE_ID
     players: int = 0
     brainrots: List[Found] = []
     selfbot: bool = False
-
 
 @api.post("/script/report")
 async def script_report(body: Report):
@@ -1036,11 +912,9 @@ async def script_report(body: Report):
         return {"inserted": n, **await selfbot_stats()}
     return {"inserted": n}
 
-
 async def selfbot_stats():
     agg = await db.selfbot_runs.aggregate([{"$match": {"source": {"$ne": "bot"}}}, {"$group": {"_id": None, "runs": {"$sum": 1}, "logged": {"$sum": "$logged"}}}]).to_list(1)
     return {"runs": agg[0]["runs"], "logged": agg[0]["logged"]} if agg else {"runs": 0, "logged": 0}
-
 
 @api.post("/script/selfbot/status")
 async def selfbot_status(body: ScriptAuth):
@@ -1049,10 +923,8 @@ async def selfbot_status(body: ScriptAuth):
         raise HTTPException(403, "Owner only")
     return {"enabled": (await get_settings())["owner_selfbot"], **await selfbot_stats()}
 
-
 class SelfbotSet(ScriptAuth):
     enabled: bool
-
 
 @api.post("/script/selfbot/set")
 async def selfbot_set(body: SelfbotSet):
@@ -1061,7 +933,6 @@ async def selfbot_set(body: SelfbotSet):
         raise HTTPException(403, "Owner only")
     await db.settings.update_one({"_id": "global"}, {"$set": {"owner_selfbot": body.enabled}}, upsert=True)
     return {"enabled": body.enabled}
-
 
 # ---------------- Admin ----------------
 @api.get("/admin/overview")
@@ -1078,7 +949,6 @@ async def admin_overview(user=Depends(admin_user)):
         "ingest_url": f"{PUBLIC_API}/logs/ingest",
     }
 
-
 class SettingsIn(BaseModel):
     system_frozen: Optional[bool] = None
     frozen_divisions: Optional[List[str]] = None
@@ -1088,19 +958,16 @@ class SettingsIn(BaseModel):
     owner_selfbot: Optional[bool] = None
     min_log_value: Optional[float] = None
 
-
 @api.put("/admin/settings")
 async def update_settings(body: SettingsIn, user=Depends(admin_user)):
     patch = {k: v for k, v in body.model_dump().items() if v is not None}
     await db.settings.update_one({"_id": "global"}, {"$set": patch}, upsert=True)
     return await get_settings()
 
-
 @api.get("/admin/users")
 async def admin_users(user=Depends(admin_user)):
     users = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return [public_user(u) for u in users]
-
 
 class UserPatch(BaseModel):
     add_balance: Optional[float] = None
@@ -1108,7 +975,6 @@ class UserPatch(BaseModel):
     whitelisted: Optional[bool] = None
     banned: Optional[bool] = None
     reset_hwid: Optional[bool] = None
-
 
 @api.patch("/admin/users/{uid}")
 async def admin_patch_user(uid: str, body: UserPatch, user=Depends(admin_user)):
@@ -1132,11 +998,9 @@ async def admin_patch_user(uid: str, body: UserPatch, user=Depends(admin_user)):
         await db.users.update_one({"id": uid}, op)
     return public_user(await db.users.find_one({"id": uid}, {"_id": 0}))
 
-
 class GiftIn(BaseModel):
     amount: float = Field(gt=0, le=1000)
     count: int = Field(default=1, ge=1, le=50)
-
 
 @api.post("/admin/giftcards")
 async def create_giftcards(body: GiftIn, user=Depends(admin_user)):
@@ -1146,17 +1010,14 @@ async def create_giftcards(body: GiftIn, user=Depends(admin_user)):
     await db.giftcards.insert_many(docs)
     return [clean(d) for d in docs]
 
-
 @api.get("/admin/giftcards")
 async def list_giftcards(user=Depends(admin_user)):
     return [clean(x) for x in await db.giftcards.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)]
-
 
 @api.delete("/admin/giftcards/{gid}")
 async def delete_giftcard(gid: str, user=Depends(admin_user)):
     await db.giftcards.delete_one({"id": gid, "redeemed_by": None})
     return {"ok": True}
-
 
 @api.get("/admin/slots")
 async def admin_slots(user=Depends(admin_user)):
@@ -1164,13 +1025,11 @@ async def admin_slots(user=Depends(admin_user)):
     users = {u["id"]: u["username"] for u in await db.users.find({}, {"_id": 0, "id": 1, "username": 1}).to_list(2000)}
     return [{**clean(x), "owner": users.get(x["user_id"]), "holder": users.get(holder(x))} for x in slots]
 
-
 @api.delete("/admin/slots/{sid}")
 async def revoke_slot(sid: str, user=Depends(admin_user)):
     await db.slots.update_one({"id": sid}, {"$set": {"expires_at": now()}})
     await db.market.update_many({"slot_id": sid, "status": "active"}, {"$set": {"status": "cancelled"}})
     return {"ok": True}
-
 
 @app.on_event("startup")
 async def startup():
@@ -1180,7 +1039,6 @@ async def startup():
     await db.slots.create_index("expires_at")
     await db.giftcards.create_index("code", unique=True)
     await db.oauth_states.create_index("expires_at", expireAfterSeconds=0)
-
 
 app.include_router(api)
 app.add_middleware(
@@ -1192,29 +1050,6 @@ app.add_middleware(
 )
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
