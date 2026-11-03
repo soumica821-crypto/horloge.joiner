@@ -45,12 +45,6 @@ DISCORD_API = "https://discord.com/api/v10"
 PLACE_ID = 109983668079237
 
 
-
-
-
-
-
-
 DIVISIONS = {
     "king": {"name": "ultra", "capacity": 6, "price": 3.0, "tiers": ["og", "peak", "high", "mid", "low"],
              "desc": "Access to every log: OG, Peak, High and Mid."},
@@ -59,14 +53,6 @@ DIVISIONS = {
     "russian": {"name": "midelin", "capacity": 12, "price": 0.50, "tiers": ["mid", "low"],
                 "desc": "Access to Mid logs."},
 }
-
-
-
-
-
-
-
-
 
 
 MAX_HOURS = 24
