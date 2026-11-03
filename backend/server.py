@@ -44,14 +44,46 @@ MOCK_LOGIN = os.environ["MOCK_LOGIN"].lower() == "true"
 DISCORD_API = "https://discord.com/api/v10"
 PLACE_ID = 109983668079237
 
+
+
+
+
+
+
+
 DIVISIONS = {
-    "king": {"name": "King", "capacity": 6, "price": 5.0, "tiers": ["og", "peak", "high", "mid", "low"],
-             "desc": "Access to every log: OG, Peak, High and Mid."},
-    "slave": {"name": "Slave", "capacity": 10, "price": 3.0, "tiers": ["high", "mid", "low"],
-              "desc": "Access to High and Mid logs."},
-    "russian": {"name": "Russian", "capacity": 12, "price": 1.25, "tiers": ["mid", "low"],
-                "desc": "Access to Mid logs."},
+    "ultra": {
+        "name": "Ultra",
+        "capacity": 6,
+        "price": 3.0,
+        "tiers": ["og", "peak", "high", "mid", "low"],
+        "desc": "Access to every log: OG, Peak, High and Mid."
+    },
+    "save": {
+        "name": "Save",
+        "capacity": 10,
+        "price": 1.0,
+        "tiers": ["high", "mid", "low"],
+        "desc": "Access to High and Mid logs."
+    },
+    "mid": {
+        "name": "Mid",
+        "capacity": 12,
+        "price": 0.30,
+        "tiers": ["mid", "low"],
+        "desc": "Access to Mid logs."
+    },
 }
+
+
+
+
+
+
+
+
+
+
 MAX_HOURS = 24
 MAX_RENT_PRICE = 5.25
 DEFAULT_SETTINGS = {"system_frozen": False, "frozen_divisions": [], "whitelist_only": False,
