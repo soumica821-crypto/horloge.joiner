@@ -691,6 +691,7 @@ async def my_script(user=Depends(current_user)):
 
 
 
+
 @api.get("/script/client.lua")
 async def client_lua(request: Request):
     user_agent = request.headers.get("user-agent", "").lower()
@@ -703,9 +704,13 @@ async def client_lua(request: Request):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Access Denied | Horloge Joiner</title>
+
+<title>Not Authorized | Horloge Joiner</title>
+
 <style>
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
@@ -713,68 +718,173 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background:
-        radial-gradient(ellipse at top, #301026 0%, #100b12 45%, #08080b 100%);
-    color: #fff;
+    overflow: hidden;
+    position: relative;
+    isolation: isolate;
+
+    background: linear-gradient(
+        125deg,
+        #100b19,
+        #291027,
+        #190d20,
+        #40102f,
+        #100b19
+    );
+
+    background-size: 400% 400%;
+    animation: backgroundMove 12s ease infinite;
+
+    color: white;
     font-family: Arial, sans-serif;
     text-align: center;
 }
 
-.panel {
-    width: min(90%, 460px);
-    padding: 42px 26px;
-    border: 1px solid #65234f;
-    border-radius: 22px;
-    background: rgba(20, 13, 22, 0.92);
-    box-shadow: 0 0 45px rgba(255, 48, 174, 0.12);
+/* Animated pink glow */
+body::before {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: -1;
+
+    background:
+        radial-gradient(
+            circle at 25% 35%,
+            rgba(255, 40, 170, 0.22),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 75% 65%,
+            rgba(190, 40, 255, 0.18),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 50% 10%,
+            rgba(255, 80, 190, 0.12),
+            transparent 30%
+        );
+
+    filter: blur(45px);
+    animation: pinkGlow 9s ease-in-out infinite alternate;
 }
 
-.brand {
-    color: #ff4db8;
-    font-size: 23px;
-    font-weight: 900;
-    letter-spacing: 3px;
-    margin-bottom: 35px;
-    text-shadow: 0 0 18px rgba(255, 77, 184, 0.45);
+/* Background animations */
+@keyframes backgroundMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
-.lock {
-    font-size: 76px;
-    margin-bottom: 22px;
-    filter: drop-shadow(0 0 18px rgba(255, 55, 174, 0.35));
+@keyframes pinkGlow {
+    0% {
+        transform: translate(-5%, -3%) scale(1);
+    }
+    50% {
+        transform: translate(5%, 4%) scale(1.15);
+    }
+    100% {
+        transform: translate(-3%, 6%) scale(1.05);
+    }
+}
+
+.content {
+    width: 90%;
+    max-width: 650px;
+    position: relative;
+    z-index: 1;
+    animation: appear 1s ease-out;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status {
+    font-size: 21px;
+    font-weight: bold;
+    margin-bottom: 28px;
+    color: #ffffff;
 }
 
 h1 {
     font-size: clamp(23px, 5vw, 31px);
-    line-height: 1.3;
-    margin: 0 0 14px;
-    color: #ff67c2;
+    font-weight: 800;
+    line-height: 1.4;
+    margin: 0 0 16px;
+
+    text-shadow:
+        0 0 15px rgba(255, 65, 185, 0.35);
 }
 
 p {
-    color: #bcb1bf;
-    font-size: 14px;
-    line-height: 1.7;
+    color: #d1c8d4;
+    font-size: 19px;
+    line-height: 1.5;
     margin: 0;
 }
 
+/* Pink separator */
 .line {
-    width: 55px;
+    width: 65px;
     height: 3px;
-    border-radius: 5px;
+    margin: 25px auto;
+    border-radius: 10px;
+
     background: #ff4db8;
-    margin: 24px auto;
+    box-shadow: 0 0 15px #ff4db8;
+
+    animation: lineGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes lineGlow {
+    from {
+        box-shadow: 0 0 5px #ff4db8;
+    }
+    to {
+        box-shadow: 0 0 22px #ff4db8;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+    }
 }
 </style>
 </head>
+
 <body>
-    <main class="panel">
-        <div class="brand">HORLOGE JOINER</div>
-        <div class="lock">🔒</div>
-        <h1>YOU ARE NOT AUTHORIZED TO ACCESS</h1>
-        <div class="line"></div>
-        <p>Access denied. You are not authorized to view this resource.</p>
-    </main>
+
+<main class="content">
+
+    <div class="status">
+        🚫 Not Authorized 🚫
+    </div>
+
+    <h1>
+        You are not allowed to view these files.
+    </h1>
+
+    <div class="line"></div>
+
+    <p>
+        Close this page &amp; proceed.
+    </p>
+
+</main>
+
 </body>
 </html>
 """,
@@ -784,6 +894,7 @@ p {
     return PlainTextResponse(
         content=lua_scripts.render(lua_scripts.CLIENT, PUBLIC_API)
     )
+
 
 
 
