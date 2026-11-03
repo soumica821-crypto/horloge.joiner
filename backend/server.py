@@ -257,7 +257,9 @@ async def user_access(user):
 def allowed_tiers(access):
     tiers = set()
     for a in access:
-        tiers.update(DIVISIONS[a["division"]]["tiers"])
+        division = DIVISIONS.get(a["division"])
+        if division:
+            tiers.update(division["tiers"])
     return tiers
 
 
