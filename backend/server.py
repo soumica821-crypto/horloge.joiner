@@ -52,27 +52,12 @@ PLACE_ID = 109983668079237
 
 
 DIVISIONS = {
-    "king": {
-        "name": "Ultra",
-        "capacity": 6,
-        "price": 3.0,
-        "tiers": ["og", "peak", "high", "mid", "low"],
-        "desc": "Access to every log: OG, Peak, High and Mid."
-    },
-    "slave": {
-        "name": "Save",
-        "capacity": 10,
-        "price": 1.0,
-        "tiers": ["high", "mid", "low"],
-        "desc": "Access to High and Mid logs."
-    },
-    "russian": {
-        "name": "Mid",
-        "capacity": 12,
-        "price": 0.30,
-        "tiers": ["mid", "low"],
-        "desc": "Access to Mid logs."
-    },
+    "king": {"name": "ultra", "capacity": 6, "price": 3.0, "tiers": ["og", "peak", "high", "mid", "low"],
+             "desc": "Access to every log: OG, Peak, High and Mid."},
+    "slave": {"name": "Save", "capacity": 10, "price": 1.24, "tiers": ["high", "mid", "low"],
+              "desc": "Access to High and Mid logs."},
+    "russian": {"name": "midelin", "capacity": 12, "price": 0.50, "tiers": ["mid", "low"],
+                "desc": "Access to Mid logs."},
 }
 
 
