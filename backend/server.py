@@ -52,21 +52,21 @@ PLACE_ID = 109983668079237
 
 
 DIVISIONS = {
-    "ultra": {
+    "king": {
         "name": "Ultra",
         "capacity": 6,
         "price": 3.0,
         "tiers": ["og", "peak", "high", "mid", "low"],
         "desc": "Access to every log: OG, Peak, High and Mid."
     },
-    "save": {
+    "slave": {
         "name": "Save",
         "capacity": 10,
         "price": 1.0,
         "tiers": ["high", "mid", "low"],
         "desc": "Access to High and Mid logs."
     },
-    "mid": {
+    "russian": {
         "name": "Mid",
         "capacity": 12,
         "price": 0.30,
