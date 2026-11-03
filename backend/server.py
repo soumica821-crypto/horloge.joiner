@@ -870,7 +870,7 @@ p {
 <main class="content">
 
     <div class="status">
-        🚫 Not Authorized 🚫
+        ⛔️ Not Authorized ⛔️
     </div>
 
     <h1>
