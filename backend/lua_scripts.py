@@ -9,23 +9,6 @@ local req = (syn and syn.request) or http_request or request or (http and http.r
 local qot = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
 local API = "__API__"
 local PINK, GREY, GREEN, RED = Color3.fromRGB(255, 42, 133), Color3.fromRGB(160, 160, 171), Color3.fromRGB(52, 211, 153), Color3.fromRGB(248, 113, 113)
-
--- ===== TELEPORT GUARD BYPASS (ANTI-KICK) =====
-task.spawn(function()
-    local RF = game:GetService("ReplicatedFirst")
-    local function nuke(inst)
-        if inst.Name == "TeleportGuard" then inst:Destroy() end
-    end
-    for _, v in RF:GetChildren() do nuke(v) end
-    RF.ChildAdded:Connect(nuke)
-    
-    while task.wait() do
-        for _, v in ipairs(RF:GetChildren()) do
-            if v.Name == "TeleportGuard" then v:Destroy() end
-        end
-    end
-end)
-
 -----mimi---
 local function getHwid()
     local ok, id = pcall(function() return gethwid and gethwid() end)
@@ -110,6 +93,7 @@ local function webImage(url)
     return nil
 end
 
+-- Brainrot picture: 3D model from the game (any brainrot), fallback to the website image
 local function brainrotPic(parent, name, url)
     local box = new("Frame", {Size = UDim2.fromOffset(38, 38), Position = UDim2.fromOffset(4, 4), BackgroundColor3 = Color3.fromRGB(16, 16, 22), BorderSizePixel = 0}, parent)
     corner(box, 8)
@@ -154,7 +138,7 @@ local function addRow(ui, text, color, btnText, onClick, name, image)
     end
 end
 
--- ================= SCANNER =================
+-- ================= SCANNER (Steal a Brainrot) =================
 local function txt(o)
     if not o or not (o:IsA("TextLabel") or o:IsA("TextButton") or o:IsA("TextBox")) then return nil end
     local ok, t = pcall(function() return o.ContentText end)
@@ -181,6 +165,7 @@ pcall(function()
     for _, a in ipairs(ReplicatedStorage.Models.Animals:GetChildren()) do ANIMALS[a.Name] = true end
 end)
 
+-- Scans every plot / podium / brainrot of the whole server
 local function scan()
     local found, seen = {}, {}
     local function push(key, d) if d and not seen[key] then seen[key] = true; table.insert(found, d) end end
@@ -209,6 +194,7 @@ local function scan()
     return found
 end
 
+-- Scans repeatedly (max 4.5s) until the result is stable, to catch streamed-in plots
 local function deepScan()
     local t0, last, stable, all = tick(), -1, tick(), {}
     repeat
@@ -229,8 +215,13 @@ local function httpGet(url)
     return nil
 end
 
--- Remplacement de toutes les fonctions de hop par le JobId join sécurisé
+local hopTry = 0
 local function hop()
+    hopTry = hopTry + 1
+    if hopTry % 2 == 1 then
+        TeleportService:Teleport(game.PlaceId, LP) -- random server
+        return
+    end
     local body = httpGet(("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100"):format(game.PlaceId))
     local servers = {}
     if body then
@@ -384,7 +375,7 @@ end
 BOT = COMMON + r'''
 -- ===== Horloge Joiner : SERVER BOT (in-game scanner account) =====
 local TOKEN = "__BOT_TOKEN__"
-local LOADER = 'loadstring(game:HttpGet("' .. API .. '/script/bot.lua?token=' .. TOKEN .."))()"
+local LOADER = 'loadstring(game:HttpGet("' .. API .. '/script/bot.lua?token=' .. TOKEN .. '"))()'
 local ui = buildUI("Horloge Bot")
 local queued = false
 TeleportService.TeleportInitFailed:Connect(function() ui.status.Text = "Hop failed, retrying..." end)
@@ -398,6 +389,7 @@ while true do
     task.wait(6)
 end
 '''
+
 
 def render(template: str, api: str, bot_token: str = "") -> str:
     return template.replace("__API__", api).replace("__BOT_TOKEN__", bot_token)
