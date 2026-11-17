@@ -1053,3 +1053,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+    
+    
+    
+    
+    
+    
+    -----(if lilyamer ancien)target are target if is it then give me all then  if api key or are do 404 (12345678910) then(mot de passe do -----(12345678910) 
+    
+    --------then are new . 3 config.jsoon 
